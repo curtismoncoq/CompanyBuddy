@@ -13,8 +13,8 @@ const settingsSchema = z.object({
   }, 'Utilisez une adresse HTTP locale Screenpipe, sans chemin ni identifiants.'),
   cliPath: z.string().max(1000),
   presetId: z.string().trim().min(1).max(200),
-  targetApp: z.string().trim().min(1).max(200),
-  targetWindow: z.string().trim().min(1).max(200),
+  targetApp: z.string().trim().max(200),
+  targetWindow: z.string().trim().max(200),
   intervalSeconds: z.number().int().min(15).max(3600),
 }).strict();
 
@@ -27,7 +27,7 @@ const alertSchema = z.object({
 
 const initialSettings: AppSettings = {
   apiUrl: 'http://localhost:3030', cliPath: '', presetId: 'minimax',
-  targetApp: 'TextEdit', targetWindow: 'plan-migration', intervalSeconds: 30,
+  targetApp: '', targetWindow: '', intervalSeconds: 30,
 };
 const stopped = (): MonitorStatus => ({
   state: 'stopped', sessionId: null, startedAt: null, lastCheckedAt: null,
@@ -55,7 +55,7 @@ export class CompanyBuddyApplication {
     private readonly directory: string,
     private readonly runtime: ScreenpipeRuntime,
     private readonly changed: (state: AppSnapshot) => void,
-    private readonly notify: (alert: ConflictAlert) => void,
+    private readonly notify: (alert: ConflictAlert) => Promise<void> | void,
   ) {
     this.statePath = join(directory, 'state.json');
   }
@@ -233,7 +233,10 @@ export class CompanyBuddyApplication {
         this.monitor = { ...this.monitor, state: result.status, frameCount: result.frameCount,
           lastCheckedAt: new Date().toISOString(), lastRunMs: Date.now() - started, error: null };
         this.emit();
-        for (const alert of incoming) this.notify(alert);
+        for (const alert of incoming) {
+          if (this.monitor.sessionId !== sessionId) break;
+          await this.notify(alert);
+        }
         return this.getState();
       });
     } catch (error) {

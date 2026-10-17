@@ -6,9 +6,10 @@
   "type": "module",
   "main": "dist-electron/electron/main.js",
   "scripts": {
-    "dev": "npm run build && electron .",
-    "start": "electron .",
+    "dev": "npm run package:mac && npm start",
+    "start": "node scripts/start.mjs",
     "build": "tsc -p tsconfig.electron.json && esbuild src/electron/preload.ts --bundle --platform=node --external:electron --format=cjs --outfile=dist-electron/electron/preload.cjs && vite build",
+    "package:mac": "npm run build && node scripts/package-mac.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {

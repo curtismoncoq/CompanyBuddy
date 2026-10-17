@@ -99,9 +99,9 @@ function apiBase(value: string): URL {
   return url;
 }
 
-function excludedApp(app: string): boolean {
+function excludedApp(app: string, window = ''): boolean {
   return /companybuddy/i.test(app)
-    || /^(terminal(?:\.app)?|iterm2?|warp|alacritty|kitty|wezterm|ghostty)$/i.test(app.trim());
+    || (app.toLowerCase() === 'electron' && /^CompanyBuddy(?:[ —–-]|$)/i.test(window));
 }
 
 function message(error: unknown): string {
@@ -201,8 +201,8 @@ export class ScreenpipeRuntime {
       if (!Number.isFinite(since) || !Number.isFinite(until) || since > until) {
         throw new RuntimeError('La période de capture demandée est invalide.');
       }
-      if (!settings.targetApp.trim() || !settings.targetWindow.trim() || excludedApp(settings.targetApp)) {
-        throw new RuntimeError('Choisissez une application de travail et un titre de fenêtre, hors CompanyBuddy et terminal.');
+      if (settings.targetApp.trim() && excludedApp(settings.targetApp, settings.targetWindow)) {
+        throw new RuntimeError('CompanyBuddy ne peut pas surveiller sa propre fenêtre.');
       }
       const approved = decisions.filter((decision) => Boolean(decision.approvedBy?.trim())
         && Boolean(decision.approvedAt) && Number.isFinite(Date.parse(decision.approvedAt ?? '')));
@@ -448,12 +448,12 @@ export class ScreenpipeRuntime {
         content_type: 'ocr',
         start_time: new Date(since).toISOString(),
         end_time: new Date(until).toISOString(),
-        app_name: settings.targetApp.trim(),
-        window_name: settings.targetWindow.trim(),
         limit: '20',
         offset: String(offset),
         fields: 'type,content.frame_id,content.text,content.app_name,content.window_name,content.timestamp',
       });
+      if (settings.targetApp.trim()) query.set('app_name', settings.targetApp.trim());
+      if (settings.targetWindow.trim()) query.set('window_name', settings.targetWindow.trim());
       const parsed = searchSchema.safeParse(await this.request(base, `/search?${query}`, token));
       if (!parsed.success || parsed.data.pagination.offset !== offset) {
         throw new RuntimeError('Le format ou la pagination des captures Screenpipe est invalide.');
@@ -461,9 +461,9 @@ export class ScreenpipeRuntime {
       for (const { content: frame } of parsed.data.data) {
         const time = Date.parse(frame.timestamp);
         if (time < since || time > until
-          || frame.app_name !== settings.targetApp.trim()
-          || !frame.window_name.toLocaleLowerCase().includes(settings.targetWindow.trim().toLocaleLowerCase())
-          || excludedApp(frame.app_name) || /companybuddy/i.test(frame.window_name)) continue;
+          || (settings.targetApp.trim() && frame.app_name.toLocaleLowerCase() !== settings.targetApp.trim().toLocaleLowerCase())
+          || (settings.targetWindow.trim() && !frame.window_name.toLocaleLowerCase().includes(settings.targetWindow.trim().toLocaleLowerCase()))
+          || excludedApp(frame.app_name, frame.window_name)) continue;
         if (!latest || time > Date.parse(latest.timestamp)
           || (time === Date.parse(latest.timestamp) && frame.frame_id > latest.frame_id)) {
           latest = frame;

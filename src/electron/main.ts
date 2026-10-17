@@ -10,7 +10,7 @@ import type { AppSettings, AppSnapshot, ConflictAlert } from '../shared/contract
 
 const here = dirname(fileURLToPath(import.meta.url));
 app.setName('CompanyBuddy');
-app.setAppUserModelId('com.companybuddy.desktop');
+if (process.platform === 'win32') app.setAppUserModelId('com.companybuddy.desktop');
 if (process.env.COMPANYBUDDY_USER_DATA_DIR) app.setPath('userData', process.env.COMPANYBUDDY_USER_DATA_DIR);
 
 let window: BrowserWindow | null = null;
@@ -27,14 +27,23 @@ function showWindow(): void {
   app.focus({ steal: true });
 }
 
-function deliverAlert(alert: ConflictAlert): void {
+function deliverAlert(alert: ConflictAlert): Promise<void> {
   if (!Notification.isSupported()) throw new Error('Les notifications de bureau ne sont pas disponibles. Le rappel est conservé dans Alertes.');
+  const { promise, resolve: delivered, reject } = Promise.withResolvers<void>();
   const notification = new Notification({
     title: 'CompanyBuddy',
     body: 'Une décision récente pourrait concerner votre travail. Cliquez pour voir les éléments justificatifs.',
     silent: false,
   });
+  const timeout = setTimeout(() => {
+    notifications.delete(alert.id);
+    reject(new Error('Le système n’a pas confirmé la notification. Consultez Alertes et vérifiez les autorisations de notification de CompanyBuddy.'));
+  }, 10_000);
   notifications.set(alert.id, notification);
+  notification.once('show', () => {
+    clearTimeout(timeout);
+    delivered();
+  });
   notification.on('click', () => {
     pendingAlert = alert.id;
     showWindow();
@@ -44,8 +53,18 @@ function deliverAlert(alert: ConflictAlert): void {
     }
   });
   notification.on('close', () => notifications.delete(alert.id));
-  notification.on('failed', (_event, error) => console.error(`Notification non délivrée : ${error}`));
-  notification.show();
+  notification.once('failed', (_event, error) => {
+    clearTimeout(timeout);
+    notifications.delete(alert.id);
+    reject(new Error(`Notification non délivrée : ${error}. Le rappel reste dans Alertes. Vérifiez Réglages Système → Notifications → CompanyBuddy.`));
+  });
+  try { notification.show(); }
+  catch (error) {
+    clearTimeout(timeout);
+    notifications.delete(alert.id);
+    reject(error instanceof Error ? error : new Error('Impossible d’afficher la notification.'));
+  }
+  return promise;
 }
 
 function registerHandlers(): void {
