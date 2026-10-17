@@ -9,6 +9,7 @@ const api: CompanyBuddyApi = {
   importApproved: input => ipcRenderer.invoke('companybuddy:import-approved', input),
   saveSettings: settings => ipcRenderer.invoke('companybuddy:save-settings', settings),
   checkConnection: () => ipcRenderer.invoke('companybuddy:check-connection'),
+  testNotification: () => ipcRenderer.invoke('companybuddy:test-notification'),
   startMonitoring: () => ipcRenderer.invoke('companybuddy:start'),
   stopMonitoring: () => ipcRenderer.invoke('companybuddy:stop'),
   checkNow: () => ipcRenderer.invoke('companybuddy:check-now'),

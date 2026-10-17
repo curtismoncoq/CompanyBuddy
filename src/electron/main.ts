@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, Notification, shell } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, shell } from 'electron';
 import { randomUUID } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { basename, dirname, join } from 'node:path';
@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 import { CompanyBuddyApplication } from './application.js';
 import { ScreenpipeRuntime } from '../runtime/screenpipe.js';
+import { DesktopNotifications } from './notifications.js';
 import type { AppSettings, AppSnapshot, ConflictAlert } from '../shared/contracts.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -17,7 +18,7 @@ let window: BrowserWindow | null = null;
 let application: CompanyBuddyApplication;
 let quitting = false;
 let pendingAlert: string | null = null;
-const notifications = new Map<string, Notification>();
+const notifications = new DesktopNotifications();
 
 function showWindow(): void {
   if (!window || window.isDestroyed()) return;
@@ -27,44 +28,23 @@ function showWindow(): void {
   app.focus({ steal: true });
 }
 
+function openAlert(alertId: string): void {
+  pendingAlert = alertId;
+  showWindow();
+  if (window && !window.webContents.isLoading()) {
+    window.webContents.send('companybuddy:open-alert', pendingAlert);
+    pendingAlert = null;
+  }
+}
+
 function deliverAlert(alert: ConflictAlert): Promise<void> {
-  if (!Notification.isSupported()) throw new Error('Les notifications de bureau ne sont pas disponibles. Le rappel est conservé dans Alertes.');
-  const { promise, resolve: delivered, reject } = Promise.withResolvers<void>();
-  const notification = new Notification({
+  if (application.getState().monitor.sessionId !== alert.sessionId) return Promise.resolve();
+  return notifications.show({
+    id: alert.id,
     title: 'CompanyBuddy',
     body: 'Une décision récente pourrait concerner votre travail. Cliquez pour voir les éléments justificatifs.',
-    silent: false,
+    onClick: () => openAlert(alert.id),
   });
-  const timeout = setTimeout(() => {
-    notifications.delete(alert.id);
-    reject(new Error('Le système n’a pas confirmé la notification. Consultez Alertes et vérifiez les autorisations de notification de CompanyBuddy.'));
-  }, 10_000);
-  notifications.set(alert.id, notification);
-  notification.once('show', () => {
-    clearTimeout(timeout);
-    delivered();
-  });
-  notification.on('click', () => {
-    pendingAlert = alert.id;
-    showWindow();
-    if (window && !window.webContents.isLoading()) {
-      window.webContents.send('companybuddy:open-alert', pendingAlert);
-      pendingAlert = null;
-    }
-  });
-  notification.on('close', () => notifications.delete(alert.id));
-  notification.once('failed', (_event, error) => {
-    clearTimeout(timeout);
-    notifications.delete(alert.id);
-    reject(new Error(`Notification non délivrée : ${error}. Le rappel reste dans Alertes. Vérifiez Réglages Système → Notifications → CompanyBuddy.`));
-  });
-  try { notification.show(); }
-  catch (error) {
-    clearTimeout(timeout);
-    notifications.delete(alert.id);
-    reject(error instanceof Error ? error : new Error('Impossible d’afficher la notification.'));
-  }
-  return promise;
 }
 
 function registerHandlers(): void {
@@ -95,6 +75,12 @@ function registerHandlers(): void {
   handle('companybuddy:import-approved', input => application.importApproved(z.object({ text: z.string().min(1).max(2_000_000) }).strict().parse(input).text));
   handle('companybuddy:save-settings', input => application.saveSettings(input as AppSettings));
   handle('companybuddy:check-connection', () => application.checkConnection());
+  handle('companybuddy:test-notification', () => notifications.show({
+    id: `test-${randomUUID()}`,
+    title: 'CompanyBuddy',
+    body: 'Les notifications fonctionnent. Cliquez pour ouvrir CompanyBuddy.',
+    onClick: showWindow,
+  }));
   handle('companybuddy:start', () => application.start());
   handle('companybuddy:stop', () => application.stop());
   handle('companybuddy:check-now', () => application.checkNow());
@@ -109,12 +95,13 @@ function registerHandlers(): void {
     if (error) throw new Error(`Impossible d’ouvrir la source : ${error}`);
   });
   handle('companybuddy:open-capture', async input => {
-    const frameId = z.number().int().positive().parse(input);
+    const frameId = z.number().int().nonnegative().parse(input);
     await shell.openExternal(`screenpipe://frame/${frameId}`);
   });
 }
 
 async function launch(): Promise<void> {
+  nativeTheme.themeSource = 'dark';
   const directory = app.getPath('userData');
   const runtime = new ScreenpipeRuntime(join(directory, 'runtime'));
   application = new CompanyBuddyApplication(directory, runtime, (state: AppSnapshot) => {
@@ -123,8 +110,12 @@ async function launch(): Promise<void> {
   await application.initialize();
   registerHandlers();
   window = new BrowserWindow({
-    title: 'CompanyBuddy', width: 1220, height: 850, minWidth: 1000, minHeight: 700,
-    backgroundColor: '#f5f6f8', show: false,
+    title: 'CompanyBuddy', width: 1120, height: 780, minWidth: 900, minHeight: 640,
+    titleBarStyle: 'hiddenInset', trafficLightPosition: { x: 18, y: 17 },
+    transparent: process.platform === 'darwin',
+    backgroundColor: process.platform === 'darwin' ? '#00000000' : '#0a0a0a',
+    vibrancy: process.platform === 'darwin' ? 'under-window' : undefined,
+    visualEffectState: 'active', show: false,
     webPreferences: { preload: join(here, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true },
   });
   window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));

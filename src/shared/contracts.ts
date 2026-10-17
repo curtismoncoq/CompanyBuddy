@@ -96,6 +96,7 @@ export interface CompanyBuddyApi {
   importApproved(input: { text: string }): Promise<AppSnapshot>;
   saveSettings(settings: AppSettings): Promise<AppSnapshot>;
   checkConnection(): Promise<AppSnapshot>;
+  testNotification(): Promise<void>;
   startMonitoring(): Promise<AppSnapshot>;
   stopMonitoring(): Promise<AppSnapshot>;
   checkNow(): Promise<AppSnapshot>;

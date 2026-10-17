@@ -14,7 +14,7 @@ This document records confirmed product decisions from the planning interview. U
 - Detect concrete possible conflicts rather than judge general alignment with company strategy. Require an applicable approved decision, relevant observed evidence, and an explanation linking them.
 - Prefer missing an ambiguous case to repeatedly interrupting legitimate work.
 - A decision owner reviews extracted candidates, corrects their wording, scope, and date constraints, then shares an approved decision file for the employee to import.
-- Use a local editor displaying `plan-migration.md` as the initial work surface. TextEdit is available on the development machine; app name and window-title filters remain configurable. This replaces Google Docs and avoids browser authentication.
+- Observe all applications whose text Screenpipe captures, with no imposed editor or document title. Optional application/window filters remain available. TextEdit and a browser with arbitrary titles are the demonstration surfaces; Google Docs authentication is unnecessary.
 - Deliver a generic desktop notification that opens an explanatory card in CompanyBuddy. Keep sensitive work-document details out of the notification.
 - The explanatory card shows the observed passage, applicable decision, available date constraints, and supporting source passage, with access to the source.
 - The app only informs the employee. Do not add an exception approval process, employee feedback workflow, automatic proposal edits, or blocking actions.
@@ -49,8 +49,9 @@ November 30, 2026 is a minimum maintenance deadline, not an effective-start date
 
 ## Operational checks
 
-- Local-editor capture, configured app/window filtering, real MiniMax task analysis and Markdown extraction have been exercised.
-- The README documents another person's setup and the manual approved-file handoff. Native notification activation remains a user-assisted check.
+- Real Screenpipe capture, MiniMax analysis and Markdown/pasted-note extraction have been exercised. General monitoring uses empty optional filters, not a TextEdit or `plan-migration` special case.
+- The README documents local signed-app setup, manual approved-file handoff and native notification permissions. A real macOS conflict notification was delivered while CompanyBuddy's window was closed; clicking the OS notification opened and focused its exact evidence card.
+- Final cross-app smoke used real Google Chrome for Testing and TextEdit captures under arbitrary titles with both filters empty. Both produced grounded conflicts and presented macOS notifications; each native click selected its own evidence, including the second alert while another alert was selected. A fresh capture of the same conflicting document did not add a third alert. Replacing its text with a conforming plan returned `clear`; an intentionally unmatched optional title filter returned `no_data`, both without extra alerts. Analysis runs in this check took approximately 32–36 seconds, not an instantaneous or guaranteed latency.
 
 ## Technical observations
 
@@ -67,7 +68,7 @@ November 30, 2026 is a minimum maintenance deadline, not an effective-start date
 - The browser relay was unavailable (target discovery timed out). A separately opened visible browser reached Google sign-in rather than an editable document, and was then closed. An accessible Google Docs test document is still required.
 - Removed the temporary task after the failed run. No ongoing CompanyBuddy surveillance was enabled.
 
-The initial extension-loading blocker was subsequently resolved as described below. Real Google Docs coverage and notification latency remain unverified.
+At that stage, the initial extension-loading blocker was resolved, but real Google Docs coverage and native delivery had not yet been checked. Google Docs is no longer a required demonstration surface.
 
 ## Compatibility correction and successful task run
 
@@ -87,5 +88,12 @@ The initial extension-loading blocker was subsequently resolved as described bel
 - Node-launched CLI tasks initially stalled with their input pipe left open. Explicitly closing subprocess stdin allowed execution to complete. Model-normalized typographic apostrophes are mapped back to the original exact evidence text; other invented quotations remain rejected.
 - Analysis now uses only the newest matching capture, not old windows in the same lookback. A real capture check confirmed that an older conflicting document no longer overrides the newer conforming document. Screenpipe text may include visible background windows, so the demo uses one migration document at a time.
 - Standards/spec review found a state-write race, startup cancellation gap, early capture cutoff and a required CLI override field. These were corrected with serialized complete transactions, post-persistence deduplication, startup generation cancellation, initial recent lookback and optional CLI discovery. Real discovery/Stop and persistence/restart smoke checks passed.
-- Actual Electron UI was exercised for file import, explicit approval, persistence after restart, live monitoring, evidence display and stopping without late alerts. Repeated checks did not add duplicate alerts for the same decision/window/session. Native banner activation is pending the user's manual check.
-- `npm run typecheck` and `npm run build` passed. Verification used disposable behavioral scripts and the real application/runtime, not permanent tests at an unconfirmed seam.
+- The desktop UI was exercised for file import, explicit approval, native Save-dialog export, approved-file import, persistence after restart, real pasted-note extraction, live monitoring, source/capture opening and stopping. The final native click check navigated from hidden Settings to Activity and focused the correct evidence.
+- Ten permanent behavioral regression tests pass, alongside `npm run typecheck` and `npm run package:mac`. Tests cover portable source evidence, atomic import rejection, persistence, notification reentrancy/deduplication and session races. A review caught legacy IPv6 settings becoming unloadable; loopback IPv6 now remains supported in settings and the runtime, with restoration and real API transport smoke coverage.
+
+## Minimal desktop interface
+
+- Three views: Activity, Decisions, Settings, labeled in French. Import uses one dialog; provenance, actions, approval metadata and diagnostics use progressive disclosure. Unsaved input survives navigation.
+- Visual reference: [Screenpipe website](https://screenpipe.com/), its [official design document](https://github.com/screenpipe/screenpipe/blob/main/docs/DESIGN.md) and [current dark desktop screenshot](https://raw.githubusercontent.com/screenpipe/screenpipe/main/.github/pr-assets/agent-disclosure/chat-main-after-dark.png). Restrained monochrome, compact navigation, thin borders and an active-analysis lime accent, adapted to the user's dark glass preference without copying the Screenpipe brand.
+- macOS uses native under-window vibrancy and translucent surfaces. The installed desktop was visually inspected through an actual Screenpipe screenshot; the interface was also exercised at its 900 × 640 minimum size without horizontal overflow.
+- Native delivery uses locally signed `release/CompanyBuddy.app`, stable bundle identifier `com.companybuddy.desktop`, retained notification objects and explicit delivery-error handling. Settings provides a real notification test without creating a fake conflict. The local ad hoc signature is not Apple notarization.

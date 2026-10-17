@@ -88,13 +88,13 @@ function apiBase(value: string): URL {
   } catch {
     throw new RuntimeError('Adresse Screenpipe invalide. Utilisez http://127.0.0.1:3030.');
   }
-  const literalHost = /^https?:\/\/([^/:?#]+)(?::[0-9]+)?\/?$/i.exec(value)?.[1];
+  const literalHost = /^https?:\/\/(\[[^\]]+\]|[^/:?#]+)(?::[0-9]+)?\/?$/i.exec(value)?.[1];
   const port = Number(url.port || (url.protocol === 'https:' ? 443 : 80));
-  if (!literalHost || !['localhost', '127.0.0.1'].includes(literalHost.toLowerCase())
+  if (!literalHost || !['localhost', '127.0.0.1', '[::1]'].includes(literalHost.toLowerCase())
     || !['http:', 'https:'].includes(url.protocol)
     || url.username || url.password || url.search || url.hash || url.pathname !== '/'
     || !Number.isInteger(port) || port < 1 || port > 65535) {
-    throw new RuntimeError('Screenpipe doit utiliser uniquement localhost ou 127.0.0.1 et un port valide.');
+    throw new RuntimeError('Screenpipe doit utiliser uniquement localhost, 127.0.0.1 ou [::1] et un port valide.');
   }
   return url;
 }
@@ -226,7 +226,6 @@ export class ScreenpipeRuntime {
         'Une citation de règle, un exemple source, une question, un ancien plan rejeté ou une discussion de la prohibition ne sont pas une intention actuelle. En cas de doute, ne signale rien.',
         'Les captures peuvent être partielles ou tronquées : ne déduis jamais un test manquant, une compatibilité cassée ou une action absente du seul silence du texte.',
         'Ne crée aucune hiérarchie d’approbation ni règle supplémentaire. Une date de maintien minimum n’autorise pas automatiquement une suppression après cette date et ne définit pas une date de début.',
-        'Conserver /api/v1/users actif tout en améliorant /api/v2/users ne contredit pas une décision de maintien de V1.',
         'Pour chaque conflit, utilise uniquement un decisionId et un frameId fournis. observedText est une citation exacte non vide du champ text de cette capture, montrant l’intention contradictoire, sans paraphrase ni ellipse ajoutée.',
         'Explique en français le lien concret avec la décision et son champ d’application. Ne fournis pas de score ni de confiance chiffrée. Ne reconstitue pas de texte invisible.',
         'Format JSON exact : {"conflicts":[{"decisionId":"...","frameId":123,"observedText":"...","explanation":"..."}]}. Si aucun conflit certain et étayé, écris {"conflicts":[]}.',

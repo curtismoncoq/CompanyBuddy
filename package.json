@@ -10,7 +10,8 @@
     "start": "node scripts/start.mjs",
     "build": "tsc -p tsconfig.electron.json && esbuild src/electron/preload.ts --bundle --platform=node --external:electron --format=cjs --outfile=dist-electron/electron/preload.cjs && vite build",
     "package:mac": "npm run build && node scripts/package-mac.mjs",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "node --import tsx --test src/domain/decisions.test.ts src/electron/application.test.ts"
   },
   "dependencies": {
     "react": "^19.0.0",

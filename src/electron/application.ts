@@ -19,7 +19,7 @@ const settingsSchema = z.object({
 }).strict();
 
 const alertSchema = z.object({
-  id: z.string(), sessionId: z.string(), decisionId: z.string(), frameId: z.number().int().positive(),
+  id: z.string(), sessionId: z.string(), decisionId: z.string(), frameId: z.number().int().nonnegative(),
   observedText: z.string(), explanation: z.string(), appName: z.string(), windowName: z.string(),
   capturedAt: z.string(), decisionTitle: z.string(), decisionQuote: z.string(), sourceName: z.string(),
   sourceId: z.string(), createdAt: z.string(),
@@ -141,16 +141,22 @@ export class CompanyBuddyApplication {
   }
 
   async checkConnection(): Promise<AppSnapshot> {
-    this.connection = await this.runtime.discover(this.settings);
+    const settings = this.settings;
+    const connection = await this.runtime.discover(settings);
+    if (settings !== this.settings) return this.getState();
+    this.connection = connection;
     return this.emit();
   }
 
   async start(): Promise<AppSnapshot> {
     if (this.monitor.sessionId) return this.getState();
+    const generation = ++this.generation;
+    await this.mutations.catch(() => undefined);
+    if (generation !== this.generation) return this.getState();
     if (!this.book.decisions.some(decision => decision.approvedAt && decision.approvedBy)) {
       throw new Error('Validez ou importez au moins une décision avant de démarrer.');
     }
-    const generation = ++this.generation;
+    // Stop invalidates startup while connection discovery is pending.
     await this.checkConnection();
     if (generation !== this.generation) return this.getState();
     if (!this.connection.reachable || this.connection.error) {
@@ -205,6 +211,7 @@ export class CompanyBuddyApplication {
       const approved = this.book.decisions.filter(decision => decision.approvedAt && decision.approvedBy);
       const result = await this.runtime.analyse(approved, this.settings, { since: new Date(since).toISOString(), until: new Date(until).toISOString() });
       if (this.monitor.sessionId !== sessionId) return;
+      let notifications: ConflictAlert[] = [];
       await this.mutate(async () => {
         if (this.monitor.sessionId !== sessionId) return this.getState();
         const incoming: ConflictAlert[] = [];
@@ -233,12 +240,19 @@ export class CompanyBuddyApplication {
         this.monitor = { ...this.monitor, state: result.status, frameCount: result.frameCount,
           lastCheckedAt: new Date().toISOString(), lastRunMs: Date.now() - started, error: null };
         this.emit();
-        for (const alert of incoming) {
-          if (this.monitor.sessionId !== sessionId) break;
-          await this.notify(alert);
-        }
+        notifications = incoming;
         return this.getState();
       });
+      let notificationError: Error | null = null;
+      for (const alert of notifications) {
+        if (this.monitor.sessionId !== sessionId) break;
+        try {
+          await this.notify(alert);
+        } catch (error) {
+          notificationError ??= error instanceof Error ? error : new Error('Notification impossible.');
+        }
+      }
+      if (notificationError !== null) throw notificationError;
     } catch (error) {
       if (this.monitor.sessionId !== sessionId) return;
       this.monitor = { ...this.monitor, state: 'error', error: error instanceof Error ? error.message : 'Analyse impossible.',
@@ -246,7 +260,8 @@ export class CompanyBuddyApplication {
       this.emit();
     } finally {
       this.busy = false;
-      if (this.monitor.sessionId) this.schedule(this.settings.intervalSeconds * 1000);
+      if (this.monitor.sessionId === sessionId) this.schedule(this.settings.intervalSeconds * 1000);
+      else if (this.monitor.sessionId) this.schedule(0);
     }
   }
 
