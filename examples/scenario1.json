@@ -1,0 +1,29 @@
+{
+  "reunion": "Point sur la migration de l'API",
+  "decisions": [
+    {
+      "sujet": "Maintien de l'API V1",
+      "description": "L'endpoint /api/v1/users est conservé actif jusqu'au 30 novembre 2026 au minimum. Aucune suppression ou désactivation ne doit avoir lieu sans une nouvelle validation de l'équipe.",
+      "valide_par": ["Alex", "Thomas", "Sarah"]
+    },
+    {
+      "sujet": "Refactorisation du backend",
+      "description": "Chaque modification des routes utilisateurs doit obligatoirement préserver la compatibilité avec /api/v1/users et inclure un test de rétrocompatibilité.",
+      "valide_par": ["Alex", "Thomas"]
+    }
+  ],
+  "actions_a_realiser": [
+    {
+      "tache": "Contacter les 3 clients restants sur la V1 pour organiser leur migration vers la V2.",
+      "assigne_a": "Sarah (Customer Success)"
+    },
+    {
+      "tache": "Mettre en pause le ticket prévoyant la suppression de l'endpoint V1.",
+      "assigne_a": "Thomas (Développeur)"
+    },
+    {
+      "tache": "Mettre à jour le suivi client pour informer l'équipe commerciale.",
+      "assigne_a": "Sarah (Customer Success)"
+    }
+  ]
+}
