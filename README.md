@@ -69,7 +69,7 @@ Un même conflit pour une décision et une fenêtre ne notifie qu’une fois par
 
 - **CLI introuvable** : renseigner son chemin dans Réglages, puis enregistrer et vérifier la connexion.
 - **Preset absent / erreur IA** : vérifier ce preset dans Screenpipe. Aucun autre modèle n’est utilisé silencieusement.
-- **Capture absente** : vérifier les permissions et le moteur de capture Screenpipe, afficher le document et supprimer les filtres inutiles. Toutes les applications dont Screenpipe fournit le texte sont éligibles, y compris les navigateurs, éditeurs et terminaux. CompanyBuddy est exclu pour éviter d’analyser ses propres preuves.
+- **Capture absente** : réveiller et déverrouiller le Mac, vérifier les permissions et le moteur de capture Screenpipe, afficher le document et supprimer les filtres inutiles. Toutes les applications dont Screenpipe fournit le texte sont éligibles, y compris les navigateurs, éditeurs et terminaux. CompanyBuddy est exclu pour éviter d’analyser ses propres preuves.
 - **Erreur d’extension Pi** : l’installation de développement utilisait Pi `0.84.1` avec une extension `pi-subagents 0.79.0` incompatible. Elle a été corrigée en épinglant `pi-subagents 0.70.1`. L’application ne modifie pas automatiquement cette configuration sur les autres ordinateurs.
 - **Pas de bannière** : utiliser **Réglages → Tester la notification**, vérifier les autorisations de **CompanyBuddy**, le style de notification et les modes Concentration. macOS décide de la présentation ; les conflits enregistrés restent consultables dans **Activité**. Un échec de remise explicite est affiché, sans réessai silencieux.
 
