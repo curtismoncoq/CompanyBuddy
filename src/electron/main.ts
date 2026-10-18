@@ -1,7 +1,7 @@
 import { app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, shell } from 'electron';
 import { randomUUID } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
-import { basename, dirname, join } from 'node:path';
+import { basename, delimiter, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 import { CompanyBuddyApplication } from './application.js';
@@ -103,7 +103,11 @@ function registerHandlers(): void {
 async function launch(): Promise<void> {
   nativeTheme.themeSource = 'dark';
   const directory = app.getPath('userData');
-  const runtime = new ScreenpipeRuntime(join(directory, 'runtime'));
+  // Screenpipe starts its agent with `env node`; Finder has no shell Node path.
+  const runtime = new ScreenpipeRuntime(join(directory, 'runtime'), {
+    ...process.env,
+    PATH: [join(process.resourcesPath, 'node-bin'), process.env.PATH].filter(Boolean).join(delimiter),
+  });
   application = new CompanyBuddyApplication(directory, runtime, (state: AppSnapshot) => {
     if (window && !window.isDestroyed()) window.webContents.send('companybuddy:state', state);
   }, deliverAlert);

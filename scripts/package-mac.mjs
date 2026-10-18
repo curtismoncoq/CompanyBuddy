@@ -24,6 +24,8 @@ try {
   await writeFile(join(application, 'package.json'), JSON.stringify({ name: metadata.name, productName: 'CompanyBuddy', version: metadata.version, type: 'module', main: metadata.main }, null, 2));
   await rm(join(resources, 'default_app.asar'), { force: true });
   await rename(join(contents, 'MacOS/Electron'), join(contents, 'MacOS/CompanyBuddy'));
+  await mkdir(join(resources, 'node-bin'));
+  await writeFile(join(resources, 'node-bin/node'), '#!/bin/sh\nELECTRON_RUN_AS_NODE=1 exec "${0%/*}/../../MacOS/CompanyBuddy" "$@"\n', { mode: 0o755 });
   const plist = join(contents, 'Info.plist');
   for (const [key, value] of Object.entries({ CFBundleDisplayName: 'CompanyBuddy', CFBundleExecutable: 'CompanyBuddy', CFBundleIdentifier: 'com.companybuddy.desktop', CFBundleName: 'CompanyBuddy', CFBundleShortVersionString: metadata.version, CFBundleVersion: metadata.version })) {
     execFileSync('/usr/libexec/PlistBuddy', ['-c', `Set :${key} ${value}`, plist]);

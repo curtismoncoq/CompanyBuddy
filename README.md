@@ -5,11 +5,13 @@ Assistant local qui rappelle une décision d’équipe lorsqu’un passage visib
 ## Prérequis
 
 - macOS avec les notifications autorisées pour **CompanyBuddy**. Cette installation a été vérifiée sur macOS ; les autres systèmes ne sont pas validés.
-- Node.js 22.19 ou plus récent, npm, puis `npm install`. Si npm indique que les scripts Electron/esbuild sont bloqués : `npm install-scripts approve electron esbuild`, puis `npm rebuild electron esbuild`.
+- Pour compiler depuis les sources : Node.js 22.19 ou plus récent, npm, puis `npm install`. Si npm indique que les scripts Electron/esbuild sont bloqués : `npm install-scripts approve electron esbuild`, puis `npm rebuild electron esbuild`.
 - Screenpipe lancé, avec la capture d’écran autorisée et son API locale accessible (par défaut `http://localhost:3030`).
 - Un preset IA fonctionnel dans Screenpipe. Le preset par défaut de CompanyBuddy est `minimax` ; il est modifiable dans Réglages. L’accès Screenpipe et l’accès au fournisseur IA sont distincts. Les extraits analysés quittent l’ordinateur vers le fournisseur sélectionné.
 
 L’application retrouve le CLI dans `~/.screenpipe/cli/<version>/screenpipe` ou dans le PATH, puis lui demande le jeton de l’API locale. Aucun jeton ni clé IA ne doit être ajouté au dépôt. Un chemin CLI explicite peut être enregistré dans Réglages si la découverte échoue. Les presets proviennent de la configuration locale de Screenpipe ; configurez leurs identifiants dans Screenpipe, pas dans CompanyBuddy.
+
+Le bundle macOS fournit un lanceur `node` privé utilisant le runtime d’Electron déjà présent. Les agents Screenpipe lancés par CompanyBuddy ne dépendent donc pas du Node du Terminal, absent du `PATH` de Finder. Le `PATH` du système, le shell et les presets Screenpipe ne sont pas modifiés.
 
 ## Lancer
 

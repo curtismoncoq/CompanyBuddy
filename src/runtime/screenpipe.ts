@@ -135,7 +135,7 @@ export class ScreenpipeRuntime {
   private disposed = false;
   private disposal: Promise<void> | null = null;
 
-  constructor(workDir: string) {
+  constructor(workDir: string, private readonly environment: NodeJS.ProcessEnv = process.env) {
     this.root = resolve(workDir);
   }
 
@@ -383,6 +383,7 @@ export class ScreenpipeRuntime {
     const { promise, resolve: resolveCommand, reject } = Promise.withResolvers<string>();
     const child = execFile(cli, args, {
       encoding: 'utf8',
+      env: this.environment,
       timeout,
       maxBuffer: 8 * 1024 * 1024,
       windowsHide: true,
