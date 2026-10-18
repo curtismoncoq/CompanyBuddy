@@ -53,7 +53,7 @@ Markdown et notes collées sont également acceptés : leur extraction utilise u
    open -a TextEdit examples/plan-migration.md
    ```
 
-6. La phrase proposant de désactiver `/api/v1/users` produit un conflit possible avec la décision de maintien. Une notification générique ouvre la preuve : passage observé, décision, source, application, heure et accès à la capture Screenpipe. La surveillance continue lorsque la fenêtre DecisionDrift est fermée.
+6. La phrase proposant de désactiver `/api/v1/users` produit un conflit possible avec la décision de maintien. La notification affiche le titre de la décision, par exemple **Maintien de l’API V1**, avec un message générique sans passage capturé. Son clic ouvre la preuve : passage observé, décision, source, application, heure et accès à la capture Screenpipe. Le titre de la décision est donc visible partout où macOS présente la notification, notamment pendant un partage d’écran si cette présentation est autorisée. La surveillance continue lorsque la fenêtre DecisionDrift est fermée.
 7. Cliquer sur **Pause**, fermer le document contradictoire, puis ouvrir `examples/plan-migration-conforme.md` et redémarrer. Ce document conserve V1 tout en améliorant V2 et ne doit pas produire de conflit.
 
 Un même conflit pour une décision et une fenêtre ne notifie qu’une fois par session. **Pause** empêche les nouvelles analyses et les notifications tardives ; elle ne coupe pas la capture indépendante de Screenpipe. Une analyse déjà soumise peut finir en arrière-plan, mais son résultat est ignoré après l’arrêt.

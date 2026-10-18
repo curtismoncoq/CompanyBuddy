@@ -42,7 +42,7 @@ function deliverAlert(alert: ConflictAlert): Promise<void> {
   if (application.getState().monitor.sessionId !== alert.sessionId) return Promise.resolve();
   return notifications.show({
     id: alert.id,
-    title: 'DecisionDrift',
+    title: alert.decisionTitle,
     body: 'Une décision récente pourrait concerner votre travail. Cliquez pour voir les éléments justificatifs.',
     onClick: () => openAlert(alert.id),
   });

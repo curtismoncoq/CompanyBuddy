@@ -15,10 +15,10 @@ This document records confirmed product decisions from the planning interview. U
 - Prefer missing an ambiguous case to repeatedly interrupting legitimate work.
 - A decision owner reviews extracted candidates, corrects their wording, scope, and date constraints, then shares an approved decision file for the employee to import.
 - Observe all applications whose text Screenpipe captures, with no imposed editor or document title. Optional application/window filters remain available. TextEdit and a browser with arbitrary titles are the demonstration surfaces; Google Docs authentication is unnecessary.
-- Deliver a generic desktop notification that opens an explanatory card in DecisionDrift. Keep sensitive work-document details out of the notification.
+- Deliver a desktop notification titled with the approved decision's title that opens an explanatory card in DecisionDrift. Keep the body generic and captured work-document details out of the notification. The decision title is intentionally visible wherever macOS presents the alert.
 - The explanatory card shows the observed passage, applicable decision, available date constraints, and supporting source passage, with access to the source.
 - The app only informs the employee. Do not add an exception approval process, employee feedback workflow, automatic proposal edits, or blocking actions.
-- Use external AI for decision extraction and conflict analysis. The user accepts external processing and does not want privacy engineering to be a hackathon workstream. Existing employee-only visibility and generic notification requirements remain in scope.
+- Use external AI for decision extraction and conflict analysis. The user accepts external processing and does not want privacy engineering to be a hackathon workstream. Existing employee-only visibility and exclusion of captured work content from notifications remain in scope.
 - Prefer MiniMax as the model provider. The user reports that MiniMax appears to work and has Screenpipe Business access through the hackathon. Do not infer specific Business entitlements or end-to-end Google Docs monitoring from that report.
 - Notify only once for the same possible conflict during a monitoring session, even if the conflicting passage remains visible. Do not add resolution tracking or follow-up reminders.
 - Use a dedicated local DecisionDrift interface with Screenpipe's integrated task execution and MiniMax as the preferred model. Do not build a separate agent harness.
@@ -129,3 +129,9 @@ At that stage, the initial extension-loading blocker was resolved, but real Goog
 - The supplied pre-rounded iOS artwork filled its 1 024-pixel canvas and appeared visibly larger than neighboring macOS icons. Keep the source untouched; generate a macOS-specific master with the artwork centered at 824 × 824 on a transparent 1 024 × 1 024 bitmap, then derive every iconset size from that same master.
 - The native Cocoa renderer uses an explicit bitmap graphics context, independent of display backing scale. The installed `.icns` decoded to 1 024 × 1 024 with fully transparent margins and an opaque body. Production packaging and installed signature verification passed.
 - Refreshed only this app's registration and relaunched the Dock to discard its old oversized bitmap. Actual Dock capture showed DecisionDrift aligned in visible size with neighboring Launchpad and System Settings icons. No Dock size, magnification, app identity or notification-permission settings were changed.
+
+## Decision title in conflict notifications
+
+- At the user's request, use each conflict alert's `decisionTitle` as its native notification title rather than the app's display name. Keep the generic body, approved decision wording, session deduplication and click-to-evidence callback unchanged. The independent notification-test button remains a generic delivery check.
+- Typechecking, all ten existing tests, production packaging and installed signature verification passed. A fresh TextEdit capture and real Screenpipe/MiniMax analysis produced a new alert titled “Maintien de l'API V1”; the actual macOS banner visibly showed that title.
+- With an older alert selected and Settings displayed, clicking the native alert opened Activity, delivered the exact new alert ID and focused its evidence card. Sources, decisions and settings remained unchanged; the legitimate verification alert was added to history and monitoring was returned to pause.
