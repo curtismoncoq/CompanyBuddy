@@ -168,6 +168,18 @@ blockquote { margin: 0 0 16px; padding: 12px 14px; border-left: 2px solid #74746
 .connection-actions .button { font-size: 10px; }
 .connection-card .review-details { padding-top: 16px; margin-top: 20px; border-top: 1px solid var(--line); }
 .path-text { font-family: var(--mono); font-size: 10px; word-break: break-all; }
+.integration-intro { margin: -8px 0 24px; }
+.integration-list { padding: 0; overflow: hidden; }
+.integration-row { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: center; gap: 16px; padding: 24px; }
+.integration-row + .integration-row { border-top: 1px solid var(--line); }
+.integration-mark { width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid #ffffff21; border-radius: 8px; background: #ffffff04; color: #deded9; font: 17px var(--mono); }
+.integration-provider { min-width: 0; }
+.integration-provider h2 { margin: 0 0 3px; font-size: 13px; }
+.integration-provider p { margin: 0; }
+.integration-actions { display: flex; align-items: center; gap: 16px; }
+.integration-status { font: 9px var(--mono); color: var(--muted); white-space: nowrap; }
+.integration-status.connected { color: var(--ink); }
+.integration-actions .button { min-width: 98px; }
 .feedback { display: flex; align-items: center; justify-content: space-between; gap: 14px; border: 1px solid #ffffff26; border-radius: 6px; background: #292927bd; padding: 10px 12px; margin-bottom: 18px; font-size: 11px; color: #d2d2ca; }
 .feedback p { margin: 0; overflow-wrap: anywhere; }
 .error-feedback, .inline-error { color: #edbab2; border-color: #dba1983b; background: #341f1d80; }
@@ -216,6 +228,8 @@ blockquote { margin: 0 0 16px; padding: 12px 14px; border-left: 2px solid #74746
   .alert-list { display: flex; max-height: none; padding-bottom: 6px; overflow-x: auto; }
   .alert-list-item { flex: 0 0 210px; }
   .settings-layout { grid-template-columns: 1fr; }
+  .integration-row { grid-template-columns: 36px minmax(0, 1fr); gap: 12px; padding: 20px; }
+  .integration-actions { grid-column: 2; justify-content: space-between; }
   .connection-actions { grid-template-columns: 1fr 1fr; }
   .settings-form .form-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
   .monitor-stats { grid-template-columns: 1fr 1fr; }

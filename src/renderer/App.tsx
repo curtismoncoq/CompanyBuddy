@@ -3,19 +3,22 @@ import type { FormEvent, ReactNode } from 'react';
 import type {
   AppSettings, AppSnapshot, ApprovalInput, ConflictAlert, Decision, MonitorStatus, SourceDocument,
 } from '../shared/contracts';
+import { IntegrationsDemo } from './IntegrationsDemo';
 
-type Page = 'activity' | 'decisions' | 'settings';
+type Page = 'activity' | 'decisions' | 'integrations' | 'settings';
 type IconName = Page | 'play' | 'pause' | 'refresh' | 'plus' | 'close' | 'arrow' | 'download';
 type RunCommand = (key: string, command: () => Promise<AppSnapshot | void>, message?: string) => Promise<boolean>;
 
 const pages: Array<{ id: Page; label: string }> = [
   { id: 'activity', label: 'Activité' },
   { id: 'decisions', label: 'Décisions' },
+  { id: 'integrations', label: 'Intégrations' },
   { id: 'settings', label: 'Réglages' },
 ];
 const iconPaths: Record<IconName, string> = {
   activity: 'M3 12h4l3-8 4 16 3-8h4',
   decisions: 'M7 3h10l3 3v15H4V3h3m1 5h8M8 12h8m-8 4h5',
+  integrations: 'M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-2 2m3 6a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l2-2',
   settings: 'M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1 1-3M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0',
   play: 'm8 4 12 8-12 8V4Z',
   pause: 'M8 5v14M16 5v14',
@@ -344,6 +347,7 @@ export function App() {
       {!snapshot ? <Empty title={error ? 'Chargement impossible' : 'Ouverture…'}>{error && window.decisionDrift && <button className="button" disabled={busy !== null} onClick={() => void run('reload', () => window.decisionDrift.getState())}>Réessayer</button>}</Empty> : <>
         <section hidden={page !== 'activity'} aria-label="Activité"><Activity snapshot={snapshot} selectedId={selectedAlert} select={setSelectedAlert} busy={busy !== null} stopping={busy === 'stop'} run={run} navigate={setPage} visible={page === 'activity'} focusRequest={alertFocusRequest} /></section>
         <section hidden={page !== 'decisions'} aria-label="Décisions"><Decisions snapshot={snapshot} busy={busy !== null} run={run} notice={setMessage} error={error} /></section>
+        <section hidden={page !== 'integrations'} aria-label="Intégrations"><IntegrationsDemo /></section>
         <section hidden={page !== 'settings'} aria-label="Réglages"><Settings snapshot={snapshot} busy={busy !== null} run={run} /></section>
       </>}
     </div></main>
