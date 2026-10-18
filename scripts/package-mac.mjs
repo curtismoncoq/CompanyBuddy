@@ -23,11 +23,22 @@ try {
   await cp(join(root, 'node_modules/zod'), join(application, 'node_modules/zod'), { recursive: true, verbatimSymlinks: true });
   await writeFile(join(application, 'package.json'), JSON.stringify({ name: metadata.name, productName: metadata.productName, version: metadata.version, type: 'module', main: metadata.main }, null, 2));
   await rm(join(resources, 'default_app.asar'), { force: true });
+  const iconset = join(resources, 'DecisionDrift.iconset');
+  await mkdir(iconset);
+  for (const size of [16, 32, 128, 256, 512]) {
+    for (const scale of [1, 2]) {
+      const pixels = String(size * scale);
+      const filename = `icon_${size}x${size}${scale === 2 ? '@2x' : ''}.png`;
+      execFileSync('/usr/bin/sips', ['-z', pixels, pixels, join(root, 'assets/icon.png'), '--out', join(iconset, filename)], { stdio: 'pipe' });
+    }
+  }
+  execFileSync('/usr/bin/iconutil', ['-c', 'icns', iconset, '-o', join(resources, 'DecisionDrift.icns')]);
+  await rm(iconset, { recursive: true });
   await rename(join(contents, 'MacOS/Electron'), join(contents, 'MacOS/DecisionDrift'));
   await mkdir(join(resources, 'node-bin'));
   await writeFile(join(resources, 'node-bin/node'), '#!/bin/sh\nELECTRON_RUN_AS_NODE=1 exec "${0%/*}/../../MacOS/DecisionDrift" "$@"\n', { mode: 0o755 });
   const plist = join(contents, 'Info.plist');
-  for (const [key, value] of Object.entries({ CFBundleDisplayName: 'DecisionDrift', CFBundleExecutable: 'DecisionDrift', CFBundleIdentifier: 'com.companybuddy.desktop', CFBundleName: 'DecisionDrift', CFBundleShortVersionString: metadata.version, CFBundleVersion: metadata.version })) {
+  for (const [key, value] of Object.entries({ CFBundleDisplayName: 'DecisionDrift', CFBundleExecutable: 'DecisionDrift', CFBundleIconFile: 'DecisionDrift.icns', CFBundleIdentifier: 'com.companybuddy.desktop', CFBundleName: 'DecisionDrift', CFBundleShortVersionString: metadata.version, CFBundleVersion: metadata.version })) {
     execFileSync('/usr/libexec/PlistBuddy', ['-c', `Set :${key} ${value}`, plist]);
   }
   execFileSync('/usr/libexec/PlistBuddy', ['-c', 'Delete :ElectronAsarIntegrity', plist]);
