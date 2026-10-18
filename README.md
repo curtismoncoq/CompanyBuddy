@@ -82,10 +82,12 @@ Le contrat fonctionnel se trouve dans `docs/implementation-spec.md` et les déci
 
 ## Icône macOS
 
-L’illustration source est `assets/icon.png` : PNG de 1 024 × 1 024 pixels avec transparence. `npm run package:mac` génère automatiquement les dix tailles standard du `.iconset` avec `sips`, les assemble avec `iconutil` dans `Contents/Resources/DecisionDrift.icns`, renseigne `CFBundleIconFile`, puis signe le bundle. Aucun outil graphique supplémentaire n’est nécessaire.
+L’illustration source est `assets/icon.png` : PNG de 1 024 × 1 024 pixels avec transparence. `npm run package:mac` centre d’abord l’illustration sur 824 × 824 pixels dans un canevas transparent de 1 024 × 1 024 avec `scripts/render-mac-icon.js`. Cette marge de 100 pixels par côté évite qu’un export iOS déjà arrondi paraisse plus gros que les icônes macOS voisines. Le paquet génère ensuite les dix tailles standard du `.iconset` avec `sips`, les assemble avec `iconutil` dans `Contents/Resources/DecisionDrift.icns`, renseigne `CFBundleIconFile`, puis signe le bundle. Aucun outil graphique supplémentaire n’est nécessaire.
 
 [Icon Composer](https://developer.apple.com/icon-composer/) est facultatif : il sert aux icônes multicouches Liquid Glass intégrées à Xcode. Pour ce bundle Electron, une image aplatie convertie en `.icns` est le chemin le plus simple.
 
 Pour changer d’icône, remplacer `assets/icon.png`, reconstruire le paquet et remplacer l’application installée après l’avoir quittée. Ne pas modifier uniquement l’icône dans Finder : ce changement ne serait pas inclus dans le paquet distribué.
 
 macOS peut garder une ancienne icône en cache. Lors de cette installation, l’enregistrement de DecisionDrift a été rafraîchi et le processus `NotificationCenter` relancé ; une vraie notification a ensuite affiché la nouvelle icône. Cela ne nécessite ni changement d’identifiant de bundle, ni réinitialisation des permissions ou de l’historique des notifications.
+
+Le Dock peut aussi conserver l’ancien bitmap après remplacement du paquet. Lors de la correction de taille, son processus a été relancé pour afficher la nouvelle icône ; aucun réglage de taille ou de grossissement du Dock n’a été modifié.

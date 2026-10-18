@@ -123,3 +123,9 @@ At that stage, the initial extension-loading blocker was resolved, but real Goog
 - Copied the supplied 1 024 × 1 024 transparent PNG into `assets/icon.png`, leaving the Downloads original untouched. macOS packaging generates all ten standard iconset representations, builds `DecisionDrift.icns`, sets `CFBundleIconFile` and signs the completed bundle. No Icon Composer dependency or Finder-only icon override.
 - Built the production bundle and verified the installed signature and icon metadata. macOS IconServices resolved the supplied artwork. Notification Center initially kept the Electron icon despite refreshing app registration and relaunching DecisionDrift; restarting only its presentation process refreshed that cache. A newly presented native test notification visibly displayed the supplied icon.
 - The original decision, source, settings and seven saved alerts remained unchanged; notification tests did not create conflict history. Monitoring remained paused.
+
+## Dock icon proportions
+
+- The supplied pre-rounded iOS artwork filled its 1 024-pixel canvas and appeared visibly larger than neighboring macOS icons. Keep the source untouched; generate a macOS-specific master with the artwork centered at 824 × 824 on a transparent 1 024 × 1 024 bitmap, then derive every iconset size from that same master.
+- The native Cocoa renderer uses an explicit bitmap graphics context, independent of display backing scale. The installed `.icns` decoded to 1 024 × 1 024 with fully transparent margins and an opaque body. Production packaging and installed signature verification passed.
+- Refreshed only this app's registration and relaunched the Dock to discard its old oversized bitmap. Actual Dock capture showed DecisionDrift aligned in visible size with neighboring Launchpad and System Settings icons. No Dock size, magnification, app identity or notification-permission settings were changed.

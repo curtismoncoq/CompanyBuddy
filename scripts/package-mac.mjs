@@ -25,11 +25,14 @@ try {
   await rm(join(resources, 'default_app.asar'), { force: true });
   const iconset = join(resources, 'DecisionDrift.iconset');
   await mkdir(iconset);
+  const iconSource = join(iconset, 'icon_512x512@2x.png');
+  execFileSync('/usr/bin/osascript', ['-l', 'JavaScript', join(root, 'scripts/render-mac-icon.js'), join(root, 'assets/icon.png'), iconSource]);
   for (const size of [16, 32, 128, 256, 512]) {
     for (const scale of [1, 2]) {
       const pixels = String(size * scale);
       const filename = `icon_${size}x${size}${scale === 2 ? '@2x' : ''}.png`;
-      execFileSync('/usr/bin/sips', ['-z', pixels, pixels, join(root, 'assets/icon.png'), '--out', join(iconset, filename)], { stdio: 'pipe' });
+      if (pixels === '1024') continue; // The padded master is already this representation.
+      execFileSync('/usr/bin/sips', ['-z', pixels, pixels, iconSource, '--out', join(iconset, filename)], { stdio: 'pipe' });
     }
   }
   execFileSync('/usr/bin/iconutil', ['-c', 'icns', iconset, '-o', join(resources, 'DecisionDrift.icns')]);
