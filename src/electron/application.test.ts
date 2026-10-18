@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import test from 'node:test';
 import { ScreenpipeRuntime } from '../runtime/screenpipe.js';
 import type { AnalysisResult, ConflictAlert, ConnectionInfo } from '../shared/contracts.js';
-import { CompanyBuddyApplication } from './application.js';
+import { DecisionDriftApplication } from './application.js';
 
 function deferred<T>(): PromiseWithResolvers<T> {
   return Promise.withResolvers<T>();
@@ -17,19 +17,19 @@ const connected: ConnectionInfo = {
 };
 
 async function createApplication(notify: (alert: ConflictAlert) => Promise<void> | void = () => {}) {
-  const directory = await mkdtemp(join(tmpdir(), 'companybuddy-application-'));
+  const directory = await mkdtemp(join(tmpdir(), 'decisiondrift-application-'));
   const runtime = new ScreenpipeRuntime(directory);
   runtime.discover = async () => connected;
   runtime.extract = async () => [{
     title: 'Maintenir V1', description: 'Garder V1 actif.', scope: 'API',
     dateConstraints: '', sourceQuote: 'Garder V1 actif.',
   }];
-  const app = new CompanyBuddyApplication(directory, runtime, () => {}, notify);
+  const app = new DecisionDriftApplication(directory, runtime, () => {}, notify);
   await app.initialize();
   return { app, runtime, directory };
 }
 
-async function approveSource(app: CompanyBuddyApplication) {
+async function approveSource(app: DecisionDriftApplication) {
   const imported = await app.importSource({ name: 'notes.md', text: 'Garder V1 actif.' });
   const candidate = imported.decisions.at(-1);
   assert.ok(candidate);
@@ -56,7 +56,7 @@ test('restoring IPv6 loopback settings keeps approved decisions available', asyn
   t.after(async () => { app.stop(); await rm(directory, { recursive: true, force: true }); });
   await approveSource(app);
   await app.saveSettings({ ...app.getState().settings, apiUrl: 'http://[::1]:3030' });
-  const restored = new CompanyBuddyApplication(directory, runtime, () => {}, () => {});
+  const restored = new DecisionDriftApplication(directory, runtime, () => {}, () => {});
   await restored.initialize();
   assert.equal(restored.getState().settings.apiUrl, 'http://[::1]:3030');
   assert.deepEqual(restored.getState().decisions, app.getState().decisions);
@@ -64,7 +64,7 @@ test('restoring IPv6 loopback settings keeps approved decisions available', asyn
 });
 
 test('an async notification can save settings without deadlocking the application', { timeout: 3000 }, async t => {
-  let app!: CompanyBuddyApplication;
+  let app!: DecisionDriftApplication;
   const fixture = await createApplication(async () => {
     await app.saveSettings({ ...app.getState().settings, targetApp: 'Editor' });
   });
@@ -76,7 +76,7 @@ test('an async notification can save settings without deadlocking the applicatio
   await app.checkNow();
   assert.equal(app.getState().settings.targetApp, 'Editor');
   assert.equal(app.getState().monitor.state, 'stopped');
-  const restored = new CompanyBuddyApplication(fixture.directory, fixture.runtime, () => {}, () => {});
+  const restored = new DecisionDriftApplication(fixture.directory, fixture.runtime, () => {}, () => {});
   await restored.initialize();
   assert.equal(restored.getState().settings.targetApp, 'Editor');
   assert.equal(restored.getState().alerts.length, 1);
@@ -133,7 +133,7 @@ test('a late model result preserves approvals acknowledged during the analysis',
   analysis.resolve(conflict(decisionId));
   await checking;
   app.stop();
-  const restored = new CompanyBuddyApplication(directory, runtime, () => {}, () => {});
+  const restored = new DecisionDriftApplication(directory, runtime, () => {}, () => {});
   await restored.initialize();
   assert.equal(restored.getState().decisions.find(item => item.id === candidate.id)?.approvedBy, 'Sam');
   assert.equal(restored.getState().alerts.length, 1);

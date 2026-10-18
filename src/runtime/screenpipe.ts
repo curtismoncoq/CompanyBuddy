@@ -100,8 +100,8 @@ function apiBase(value: string): URL {
 }
 
 function excludedApp(app: string, window = ''): boolean {
-  return /companybuddy/i.test(app)
-    || (app.toLowerCase() === 'electron' && /^CompanyBuddy(?:[ —–-]|$)/i.test(window));
+  return /decisiondrift/i.test(app)
+    || (app.toLowerCase() === 'electron' && /^DecisionDrift(?:[ —–-]|$)/i.test(window));
 }
 
 function message(error: unknown): string {
@@ -179,7 +179,7 @@ export class ScreenpipeRuntime {
         source: { id: source.id, name: source.name, text: source.text, actions: source.actions },
       }, [
         'Extrais uniquement les décisions réellement prises dans ce document, jamais les actions assignées, questions, propositions non retenues ou simples exemples.',
-        'Les noms présents dans valide_par sont seulement des éléments de la source, pas une approbation dans CompanyBuddy.',
+        'Les noms présents dans valide_par sont seulement des éléments de la source, pas une approbation dans DecisionDrift.',
         'Préserve toutes les décisions distinctes. Écris les titres, descriptions et portées en français, sans inventer de règle, hiérarchie de validation ou date.',
         'Une date de maintien minimum ne constitue ni une date de début ni une expiration automatique. Laisse scope ou dateConstraints vide si la source ne précise rien.',
         'sourceQuote doit être une citation non vide copiée exactement, caractère par caractère, du champ source.text. Ne réécris pas la citation et ne la tronque pas avec des points de suspension.',
@@ -202,7 +202,7 @@ export class ScreenpipeRuntime {
         throw new RuntimeError('La période de capture demandée est invalide.');
       }
       if (settings.targetApp.trim() && excludedApp(settings.targetApp, settings.targetWindow)) {
-        throw new RuntimeError('CompanyBuddy ne peut pas surveiller sa propre fenêtre.');
+        throw new RuntimeError('DecisionDrift ne peut pas surveiller sa propre fenêtre.');
       }
       const approved = decisions.filter((decision) => Boolean(decision.approvedBy?.trim())
         && Boolean(decision.approvedAt) && Number.isFinite(Date.parse(decision.approvedAt ?? '')));
@@ -278,14 +278,14 @@ export class ScreenpipeRuntime {
           }
         }
       }
-      if (failed) throw new RuntimeError('Impossible de supprimer une tâche CompanyBuddy. Fermez Screenpipe puis réessayez le nettoyage.');
+      if (failed) throw new RuntimeError('Impossible de supprimer une tâche DecisionDrift. Fermez Screenpipe puis réessayez le nettoyage.');
     });
     return this.disposal;
   }
 
   private serial<T>(operation: () => Promise<T>): Promise<T> {
     const run = this.queue.then(async () => {
-      if (this.disposed) throw new RuntimeError('Le moteur CompanyBuddy est fermé.');
+      if (this.disposed) throw new RuntimeError('Le moteur DecisionDrift est fermé.');
       try {
         return await operation();
       } catch (error) {
@@ -482,7 +482,7 @@ export class ScreenpipeRuntime {
       throw new RuntimeError('Les données dépassent la taille autorisée pour une tâche Screenpipe.');
     }
     await mkdir(this.root, { recursive: true, mode: 0o700 });
-    const name = `companybuddy-${this.instance}-${kind}`;
+    const name = `decisiondrift-${this.instance}-${kind}`;
     const taskDir = join(this.root, 'tasks', name);
     const runDir = join(this.root, 'runs', this.instance, kind, randomUUID());
     await mkdir(taskDir, { recursive: true, mode: 0o700 });
@@ -503,7 +503,7 @@ export class ScreenpipeRuntime {
       '  allow: []',
       '---',
       '',
-      '# CompanyBuddy — traitement local limité',
+      '# DecisionDrift — traitement local limité',
       '',
       `Lis UNIQUEMENT le fichier d’entrée absolu ${JSON.stringify(inputPath)} avec l’outil read.`,
       `Écris le résultat JSON valide UNIQUEMENT dans le fichier absolu ${JSON.stringify(outputPath)} avec l’outil write.`,

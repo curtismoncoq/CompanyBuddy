@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
-const executable = join(root, 'release/CompanyBuddy.app/Contents/MacOS/CompanyBuddy');
+const executable = join(root, 'release/DecisionDrift.app/Contents/MacOS/DecisionDrift');
 try { await access(executable); }
 catch { throw new Error('Préparez l’application macOS signée avec npm run package:mac, ou lancez npm run dev.'); }
 const environment = { ...process.env };

@@ -7,9 +7,9 @@ import { fileURLToPath } from 'node:url';
 if (process.platform !== 'darwin') throw new Error('Ce paquet local est destiné à macOS.');
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const release = join(root, 'release');
-const staged = join(release, `.CompanyBuddy-${randomUUID()}.app`);
-const destination = join(release, 'CompanyBuddy.app');
-const previous = join(release, `.CompanyBuddy-previous-${randomUUID()}.app`);
+const staged = join(release, `.DecisionDrift-${randomUUID()}.app`);
+const destination = join(release, 'DecisionDrift.app');
+const previous = join(release, `.DecisionDrift-previous-${randomUUID()}.app`);
 const metadata = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
 await mkdir(release, { recursive: true });
 try {
@@ -21,13 +21,13 @@ try {
   await cp(join(root, 'dist'), join(application, 'dist'), { recursive: true });
   await cp(join(root, 'dist-electron'), join(application, 'dist-electron'), { recursive: true });
   await cp(join(root, 'node_modules/zod'), join(application, 'node_modules/zod'), { recursive: true, verbatimSymlinks: true });
-  await writeFile(join(application, 'package.json'), JSON.stringify({ name: metadata.name, productName: 'CompanyBuddy', version: metadata.version, type: 'module', main: metadata.main }, null, 2));
+  await writeFile(join(application, 'package.json'), JSON.stringify({ name: metadata.name, productName: metadata.productName, version: metadata.version, type: 'module', main: metadata.main }, null, 2));
   await rm(join(resources, 'default_app.asar'), { force: true });
-  await rename(join(contents, 'MacOS/Electron'), join(contents, 'MacOS/CompanyBuddy'));
+  await rename(join(contents, 'MacOS/Electron'), join(contents, 'MacOS/DecisionDrift'));
   await mkdir(join(resources, 'node-bin'));
-  await writeFile(join(resources, 'node-bin/node'), '#!/bin/sh\nELECTRON_RUN_AS_NODE=1 exec "${0%/*}/../../MacOS/CompanyBuddy" "$@"\n', { mode: 0o755 });
+  await writeFile(join(resources, 'node-bin/node'), '#!/bin/sh\nELECTRON_RUN_AS_NODE=1 exec "${0%/*}/../../MacOS/DecisionDrift" "$@"\n', { mode: 0o755 });
   const plist = join(contents, 'Info.plist');
-  for (const [key, value] of Object.entries({ CFBundleDisplayName: 'CompanyBuddy', CFBundleExecutable: 'CompanyBuddy', CFBundleIdentifier: 'com.companybuddy.desktop', CFBundleName: 'CompanyBuddy', CFBundleShortVersionString: metadata.version, CFBundleVersion: metadata.version })) {
+  for (const [key, value] of Object.entries({ CFBundleDisplayName: 'DecisionDrift', CFBundleExecutable: 'DecisionDrift', CFBundleIdentifier: 'com.companybuddy.desktop', CFBundleName: 'DecisionDrift', CFBundleShortVersionString: metadata.version, CFBundleVersion: metadata.version })) {
     execFileSync('/usr/libexec/PlistBuddy', ['-c', `Set :${key} ${value}`, plist]);
   }
   execFileSync('/usr/libexec/PlistBuddy', ['-c', 'Delete :ElectronAsarIntegrity', plist]);

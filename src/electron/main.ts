@@ -4,18 +4,19 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { basename, delimiter, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
-import { CompanyBuddyApplication } from './application.js';
+import { DecisionDriftApplication } from './application.js';
 import { ScreenpipeRuntime } from '../runtime/screenpipe.js';
 import { DesktopNotifications } from './notifications.js';
 import type { AppSettings, AppSnapshot, ConflictAlert } from '../shared/contracts.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
-app.setName('CompanyBuddy');
+app.setName('DecisionDrift');
 if (process.platform === 'win32') app.setAppUserModelId('com.companybuddy.desktop');
-if (process.env.COMPANYBUDDY_USER_DATA_DIR) app.setPath('userData', process.env.COMPANYBUDDY_USER_DATA_DIR);
+// Keep the existing storage identity so a display-name change never resets user data.
+app.setPath('userData', process.env.DECISIONDRIFT_USER_DATA_DIR || join(app.getPath('appData'), 'CompanyBuddy'));
 
 let window: BrowserWindow | null = null;
-let application: CompanyBuddyApplication;
+let application: DecisionDriftApplication;
 let quitting = false;
 let pendingAlert: string | null = null;
 const notifications = new DesktopNotifications();
@@ -32,7 +33,7 @@ function openAlert(alertId: string): void {
   pendingAlert = alertId;
   showWindow();
   if (window && !window.webContents.isLoading()) {
-    window.webContents.send('companybuddy:open-alert', pendingAlert);
+    window.webContents.send('decisiondrift:open-alert', pendingAlert);
     pendingAlert = null;
   }
 }
@@ -41,7 +42,7 @@ function deliverAlert(alert: ConflictAlert): Promise<void> {
   if (application.getState().monitor.sessionId !== alert.sessionId) return Promise.resolve();
   return notifications.show({
     id: alert.id,
-    title: 'CompanyBuddy',
+    title: 'DecisionDrift',
     body: 'Une décision récente pourrait concerner votre travail. Cliquez pour voir les éléments justificatifs.',
     onClick: () => openAlert(alert.id),
   });
@@ -56,35 +57,35 @@ function registerHandlers(): void {
       return callback(...args);
     });
   };
-  handle('companybuddy:get-state', () => application.getState());
-  handle('companybuddy:import-source', input => application.importSource(z.object({ name: z.string().trim().min(1).max(300), text: z.string().trim().min(1).max(200_000) }).strict().parse(input)));
-  handle('companybuddy:approve', input => application.approve(z.object({
+  handle('decisiondrift:get-state', () => application.getState());
+  handle('decisiondrift:import-source', input => application.importSource(z.object({ name: z.string().trim().min(1).max(300), text: z.string().trim().min(1).max(200_000) }).strict().parse(input)));
+  handle('decisiondrift:approve', input => application.approve(z.object({
     id: z.string(), approvedBy: z.string().trim().min(1).max(200), title: z.string(),
     description: z.string(), scope: z.string(), dateConstraints: z.string(), sourceQuote: z.string(),
   }).strict().parse(input)));
-  handle('companybuddy:export-approved', async () => {
+  handle('decisiondrift:export-approved', async () => {
     const text = application.exportApproved();
     const result = await dialog.showSaveDialog(window!, {
-      title: 'Partager les décisions approuvées', defaultPath: 'companybuddy-decisions.json',
-      filters: [{ name: 'Décisions CompanyBuddy', extensions: ['json'] }],
+      title: 'Partager les décisions approuvées', defaultPath: 'decisiondrift-decisions.json',
+      filters: [{ name: 'Décisions DecisionDrift', extensions: ['json'] }],
     });
     if (result.canceled || !result.filePath) return { filePath: null };
     await writeFile(result.filePath, text, { mode: 0o600 });
     return { filePath: result.filePath };
   });
-  handle('companybuddy:import-approved', input => application.importApproved(z.object({ text: z.string().min(1).max(2_000_000) }).strict().parse(input).text));
-  handle('companybuddy:save-settings', input => application.saveSettings(input as AppSettings));
-  handle('companybuddy:check-connection', () => application.checkConnection());
-  handle('companybuddy:test-notification', () => notifications.show({
+  handle('decisiondrift:import-approved', input => application.importApproved(z.object({ text: z.string().min(1).max(2_000_000) }).strict().parse(input).text));
+  handle('decisiondrift:save-settings', input => application.saveSettings(input as AppSettings));
+  handle('decisiondrift:check-connection', () => application.checkConnection());
+  handle('decisiondrift:test-notification', () => notifications.show({
     id: `test-${randomUUID()}`,
-    title: 'CompanyBuddy',
-    body: 'Les notifications fonctionnent. Cliquez pour ouvrir CompanyBuddy.',
+    title: 'DecisionDrift',
+    body: 'Les notifications fonctionnent. Cliquez pour ouvrir DecisionDrift.',
     onClick: showWindow,
   }));
-  handle('companybuddy:start', () => application.start());
-  handle('companybuddy:stop', () => application.stop());
-  handle('companybuddy:check-now', () => application.checkNow());
-  handle('companybuddy:open-source', async input => {
+  handle('decisiondrift:start', () => application.start());
+  handle('decisiondrift:stop', () => application.stop());
+  handle('decisiondrift:check-now', () => application.checkNow());
+  handle('decisiondrift:open-source', async input => {
     const source = application.source(z.string().parse(input));
     const directory = join(app.getPath('userData'), 'source-view');
     await mkdir(directory, { recursive: true });
@@ -94,7 +95,7 @@ function registerHandlers(): void {
     const error = await shell.openPath(path);
     if (error) throw new Error(`Impossible d’ouvrir la source : ${error}`);
   });
-  handle('companybuddy:open-capture', async input => {
+  handle('decisiondrift:open-capture', async input => {
     const frameId = z.number().int().nonnegative().parse(input);
     await shell.openExternal(`screenpipe://frame/${frameId}`);
   });
@@ -108,13 +109,13 @@ async function launch(): Promise<void> {
     ...process.env,
     PATH: [join(process.resourcesPath, 'node-bin'), process.env.PATH].filter(Boolean).join(delimiter),
   });
-  application = new CompanyBuddyApplication(directory, runtime, (state: AppSnapshot) => {
-    if (window && !window.isDestroyed()) window.webContents.send('companybuddy:state', state);
+  application = new DecisionDriftApplication(directory, runtime, (state: AppSnapshot) => {
+    if (window && !window.isDestroyed()) window.webContents.send('decisiondrift:state', state);
   }, deliverAlert);
   await application.initialize();
   registerHandlers();
   window = new BrowserWindow({
-    title: 'CompanyBuddy', width: 1120, height: 780, minWidth: 900, minHeight: 640,
+    title: 'DecisionDrift', width: 1120, height: 780, minWidth: 900, minHeight: 640,
     titleBarStyle: 'hiddenInset', trafficLightPosition: { x: 18, y: 17 },
     transparent: process.platform === 'darwin',
     backgroundColor: process.platform === 'darwin' ? '#00000000' : '#0a0a0a',
@@ -126,7 +127,7 @@ async function launch(): Promise<void> {
   window.webContents.on('will-navigate', event => event.preventDefault());
   window.webContents.on('did-finish-load', () => {
     if (pendingAlert) {
-      window!.webContents.send('companybuddy:open-alert', pendingAlert);
+      window!.webContents.send('decisiondrift:open-alert', pendingAlert);
       pendingAlert = null;
     }
   });
@@ -135,13 +136,13 @@ async function launch(): Promise<void> {
   });
   window.once('ready-to-show', () => {
     showWindow();
-    console.log('CompanyBuddy ready');
+    console.log('DecisionDrift ready');
   });
   Menu.setApplicationMenu(Menu.buildFromTemplate([
-    { label: 'CompanyBuddy', submenu: [
-      { label: 'Afficher CompanyBuddy', click: showWindow },
+    { label: 'DecisionDrift', submenu: [
+      { label: 'Afficher DecisionDrift', click: showWindow },
       { label: 'Mettre en pause la surveillance', click: () => application.stop() },
-      { type: 'separator' }, { role: 'quit', label: 'Quitter CompanyBuddy' },
+      { type: 'separator' }, { role: 'quit', label: 'Quitter DecisionDrift' },
     ] },
     { label: 'Édition', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }] },
     { label: 'Fenêtre', submenu: [{ role: 'minimize' }, { role: 'zoom' }, { label: 'Afficher', click: showWindow }] },
@@ -161,12 +162,12 @@ if (!app.requestSingleInstanceLock()) {
     quitting = true;
     void (async () => {
       try { await application?.dispose(); }
-      catch (error) { console.error('Arrêt de CompanyBuddy incomplet.', error instanceof Error ? error.message : 'Erreur inconnue'); }
+      catch (error) { console.error('Arrêt de DecisionDrift incomplet.', error instanceof Error ? error.message : 'Erreur inconnue'); }
       app.exit(0);
     })();
   });
   void app.whenReady().then(launch).catch(async error => {
-    dialog.showErrorBox('CompanyBuddy ne peut pas démarrer', error instanceof Error ? error.message : String(error));
+    dialog.showErrorBox('DecisionDrift ne peut pas démarrer', error instanceof Error ? error.message : String(error));
     quitting = true;
     app.exit(1);
   });

@@ -50,7 +50,7 @@ function SourceContext({ source, busy, run }: { source: SourceDocument; busy: bo
     <summary>{source.actions.length > 0 ? 'Source et actions' : 'Source originale'}</summary>
     <div className="details-body">
       <div className="inline-header"><span className="muted">Importée le {date(source.importedAt)}</span>
-        <button className="button small" disabled={busy} onClick={() => void run('source', () => window.companyBuddy.openSource(source.id))}>Ouvrir la source <Icon name="arrow" /></button>
+        <button className="button small" disabled={busy} onClick={() => void run('source', () => window.decisionDrift.openSource(source.id))}>Ouvrir la source <Icon name="arrow" /></button>
       </div>
       <pre className="source-text">{source.text}</pre>
       {source.actions.length > 0 && <section className="source-actions" aria-label="Actions attribuées dans la source">
@@ -77,7 +77,7 @@ function Candidate({ decision, source, busy, run }: { decision: Decision; source
   function field(name: keyof ApprovalInput, value: string) { setDraft(current => ({ ...current, [name]: value })); }
   async function submit(event: FormEvent) {
     event.preventDefault();
-    await run(`approve-${decision.id}`, () => window.companyBuddy.approveDecision({ ...draft, approvedBy: draft.approvedBy.trim() }));
+    await run(`approve-${decision.id}`, () => window.decisionDrift.approveDecision({ ...draft, approvedBy: draft.approvedBy.trim() }));
   }
   return <article className="card candidate-card">
     <div className="card-top"><span className="badge">À examiner</span><span className="muted truncate">{source?.name ?? 'Source introuvable'}</span></div>
@@ -123,22 +123,22 @@ function Decisions({ snapshot, busy, run, notice, error }: { snapshot: AppSnapsh
   }, [importOpen]);
 
   async function importSourceFile(file: File) {
-    const ok = await run('import-source', async () => window.companyBuddy.importSource({ name: file.name, text: await file.text() }));
+    const ok = await run('import-source', async () => window.decisionDrift.importSource({ name: file.name, text: await file.text() }));
     if (ok) { setSection('candidates'); setImportOpen(false); }
   }
   async function importPortableFile(file: File) {
-    const ok = await run('import-approved', async () => window.companyBuddy.importApproved({ text: await file.text() }));
+    const ok = await run('import-approved', async () => window.decisionDrift.importApproved({ text: await file.text() }));
     if (ok) { setSection('approved'); setImportOpen(false); }
   }
   async function importPaste(event: FormEvent) {
     event.preventDefault();
-    const ok = await run('import-source', () => window.companyBuddy.importSource({ name: sourceName.trim(), text: sourceText }));
+    const ok = await run('import-source', () => window.decisionDrift.importSource({ name: sourceName.trim(), text: sourceText }));
     if (ok) { setSourceName(''); setSourceText(''); setSection('candidates'); setImportOpen(false); }
   }
   return <>
     <header className="page-heading"><h1>Décisions</h1><div className="button-group">
       <button className="button" disabled={busy || approved.length === 0} onClick={() => void run('export', async () => {
-        const result = await window.companyBuddy.exportApproved();
+        const result = await window.decisionDrift.exportApproved();
         if (result.filePath) notice(`Enregistré : ${result.filePath}`);
       })}><Icon name="download" />Exporter</button>
       <button className="button primary" disabled={busy} onClick={() => setImportOpen(true)}><Icon name="plus" />Importer</button>
@@ -164,7 +164,7 @@ function Decisions({ snapshot, busy, run, notice, error }: { snapshot: AppSnapsh
           <label>Notes originales<textarea required rows={6} value={sourceText} onChange={event => setSourceText(event.target.value)} /></label>
           <button className="button primary" type="submit" disabled={!sourceName.trim() || !sourceText.trim()}>Extraire les décisions</button>
         </fieldset></form></details>
-        <div className="import-file-row portable-import"><div><h3>Fichier approuvé</h3><p className="muted">Export CompanyBuddy, approbations conservées.</p></div><button className="button" disabled={busy} onClick={() => approvedFile.current?.click()}>Choisir un fichier</button></div>
+        <div className="import-file-row portable-import"><div><h3>Fichier approuvé</h3><p className="muted">Export DecisionDrift, approbations conservées.</p></div><button className="button" disabled={busy} onClick={() => approvedFile.current?.click()}>Choisir un fichier</button></div>
         <input className="file-input" ref={approvedFile} type="file" accept=".json,application/json" aria-label="Choisir un fichier approuvé" disabled={busy} onChange={event => {
           const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; if (file) void importPortableFile(file);
         }} />
@@ -183,11 +183,11 @@ function AlertEvidence({ alert, snapshot, busy, run, focus, focusRequest }: { al
     <h2 id="evidence-title">{alert.decisionTitle}</h2>
     <section className="evidence-section"><h3>Passage observé</h3><blockquote className="observed-quote">{alert.observedText}</blockquote>
       <p className="capture-context">{alert.appName}{alert.windowName && <> · {alert.windowName}</>}</p>
-      <button className="button small" disabled={busy} onClick={() => void run('capture', () => window.companyBuddy.openCapture(alert.frameId))}>Ouvrir la capture <Icon name="arrow" /></button>
+      <button className="button small" disabled={busy} onClick={() => void run('capture', () => window.decisionDrift.openCapture(alert.frameId))}>Ouvrir la capture <Icon name="arrow" /></button>
     </section>
     <section className="evidence-section"><h3>Pourquoi ce rappel</h3><p className="preserve">{alert.explanation}</p></section>
     <section className="evidence-section"><h3>Décision de référence</h3><blockquote>{alert.decisionQuote}</blockquote>
-      <button className="button small" disabled={busy} onClick={() => void run('source', () => window.companyBuddy.openSource(alert.sourceId))}><span className="truncate">{alert.sourceName}</span><Icon name="arrow" /></button>
+      <button className="button small" disabled={busy} onClick={() => void run('source', () => window.decisionDrift.openSource(alert.sourceId))}><span className="truncate">{alert.sourceName}</span><Icon name="arrow" /></button>
       {decision && <details className="review-details"><summary>Périmètre et approbation</summary><div className="details-body"><p className="preserve">{decision.description}</p><DecisionDetails decision={decision} /></div></details>}
     </section>
   </article>;
@@ -207,8 +207,8 @@ function Activity({ snapshot, selectedId, select, busy, stopping, run, navigate,
     <header className="page-heading"><h1>Activité</h1><span className="muted">{approvedCount} {approvedCount === 1 ? 'décision approuvée' : 'décisions approuvées'}</span></header>
     <section className={`card monitor-card state-${monitor.state}`} aria-label="Surveillance">
       <div className="monitor-main"><div className="monitor-status"><span className={`status-dot ${checking ? 'analyzing' : ''}`} aria-hidden="true" /><h2 aria-live="polite">{monitorLabels[monitor.state]}</h2></div>
-        <div className="button-group">{active ? <button className="button" disabled={stopping} onClick={() => void run('stop', () => window.companyBuddy.stopMonitoring())}><Icon name="pause" />{stopping ? 'Pause…' : 'Pause'}</button> : <button className="button primary" disabled={busy || approvedCount === 0} onClick={() => void run('start', () => window.companyBuddy.startMonitoring())}><Icon name="play" />Démarrer</button>}
-          <button className="button" disabled={busy || checking || !active || approvedCount === 0} onClick={() => void run('check', () => window.companyBuddy.checkNow())}><Icon name="refresh" />Vérifier</button>
+        <div className="button-group">{active ? <button className="button" disabled={stopping} onClick={() => void run('stop', () => window.decisionDrift.stopMonitoring())}><Icon name="pause" />{stopping ? 'Pause…' : 'Pause'}</button> : <button className="button primary" disabled={busy || approvedCount === 0} onClick={() => void run('start', () => window.decisionDrift.startMonitoring())}><Icon name="play" />Démarrer</button>}
+          <button className="button" disabled={busy || checking || !active || approvedCount === 0} onClick={() => void run('check', () => window.decisionDrift.checkNow())}><Icon name="refresh" />Vérifier</button>
         </div>
       </div>
       <div className="monitor-scope"><button className="scope-button" onClick={() => navigate('settings')}>{settings.targetApp || 'Toutes les applications'}<span> / </span>{settings.targetWindow || 'Tous les titres'}<Icon name="arrow" /></button><span className="muted">{monitor.lastCheckedAt ? `Vérifié le ${date(monitor.lastCheckedAt)}` : 'Pas encore vérifié'}</span></div>
@@ -217,12 +217,12 @@ function Activity({ snapshot, selectedId, select, busy, stopping, run, navigate,
       {approvedCount === 0 && <p className="gate-note"><button className="inline-button" onClick={() => navigate('decisions')}>Ajouter des décisions approuvées</button> pour démarrer.</p>}
       <details className="monitor-details"><summary>Détails de la session</summary><div className="details-body"><dl className="monitor-stats">
         <div><dt>Début</dt><dd>{date(monitor.startedAt)}</dd></div><div><dt>Dernière analyse</dt><dd>{monitor.lastRunMs === null ? '—' : `${(monitor.lastRunMs / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} s`}</dd></div><div><dt>Captures analysées</dt><dd>{monitor.frameCount}</dd></div><div><dt>Intervalle</dt><dd>{settings.intervalSeconds} s</dd></div>
-      </dl><p className="form-help">Pause arrête les analyses CompanyBuddy, pas la capture Screenpipe. Un rappel par conflit et document, par session. Les extraits sont traités par le modèle du preset.</p></div></details>
+      </dl><p className="form-help">Pause arrête les analyses DecisionDrift, pas la capture Screenpipe. Un rappel par conflit et document, par session. Les extraits sont traités par le modèle du preset.</p></div></details>
     </section>
     <div className="section-heading"><h2>Alertes</h2><span className="count-label">{sorted.length}</span></div>
     {sorted.length > 0 ? <div className="alerts-layout"><nav className="alert-list" aria-label="Historique des alertes">{sorted.map(alert => <button key={alert.id} className={`alert-list-item ${selected?.id === alert.id ? 'selected' : ''}`} aria-current={selected?.id === alert.id ? 'true' : undefined} onClick={() => select(alert.id)}><span className="alert-list-date">{date(alert.capturedAt)}</span><strong>{alert.decisionTitle}</strong><span className="alert-preview">{alert.observedText}</span><span className="alert-list-window">{alert.appName}</span></button>)}</nav>
-      {selected ? <AlertEvidence key={selected.id} alert={selected} snapshot={snapshot} busy={busy} run={run} focus={visible && selectedId !== null} focusRequest={focusRequest} /> : <Empty title="Alerte indisponible"><p>Sélectionnez une autre alerte ou <button className="inline-button" disabled={busy} onClick={() => void run('reload', () => window.companyBuddy.getState())}>actualisez</button>.</p></Empty>}
-    </div> : <Empty title={selectedId ? 'Alerte indisponible' : 'Aucune alerte'}><p>{selectedId ? 'Le rappel demandé ne figure pas dans l’historique chargé.' : 'Les conflits possibles apparaîtront ici avec leurs preuves.'}</p>{selectedId && <button className="button" disabled={busy} onClick={() => void run('reload', () => window.companyBuddy.getState())}>Actualiser</button>}</Empty>}
+      {selected ? <AlertEvidence key={selected.id} alert={selected} snapshot={snapshot} busy={busy} run={run} focus={visible && selectedId !== null} focusRequest={focusRequest} /> : <Empty title="Alerte indisponible"><p>Sélectionnez une autre alerte ou <button className="inline-button" disabled={busy} onClick={() => void run('reload', () => window.decisionDrift.getState())}>actualisez</button>.</p></Empty>}
+    </div> : <Empty title={selectedId ? 'Alerte indisponible' : 'Aucune alerte'}><p>{selectedId ? 'Le rappel demandé ne figure pas dans l’historique chargé.' : 'Les conflits possibles apparaîtront ici avec leurs preuves.'}</p>{selectedId && <button className="button" disabled={busy} onClick={() => void run('reload', () => window.decisionDrift.getState())}>Actualiser</button>}</Empty>}
   </>;
 }
 
@@ -240,7 +240,7 @@ function Settings({ snapshot, busy, run }: { snapshot: AppSnapshot; busy: boolea
     event.preventDefault();
     if (!validInterval) return;
     const settings: AppSettings = { ...draft, apiUrl: draft.apiUrl.trim(), cliPath: draft.cliPath.trim(), targetApp: draft.targetApp.trim(), targetWindow: draft.targetWindow.trim(), intervalSeconds: Number(interval) };
-    const ok = await run('settings', () => window.companyBuddy.saveSettings(settings));
+    const ok = await run('settings', () => window.decisionDrift.saveSettings(settings));
     if (ok) { setDraft(settings); setInterval(String(settings.intervalSeconds)); setBaseline(JSON.stringify(settings)); }
   }
   return <>
@@ -251,7 +251,7 @@ function Settings({ snapshot, busy, run }: { snapshot: AppSnapshot; busy: boolea
       <label>Preset<select required value={draft.presetId} onChange={event => field('presetId', event.target.value)}><option value="">Choisir un preset</option>{selectedMissing && <option value={draft.presetId}>{draft.presetId} — à vérifier</option>}{snapshot.connection.presets.map(preset => <option value={preset.id} key={preset.id}>{preset.name} · {preset.model}</option>)}</select></label>
       <p className="form-help">Modèle et identifiants se règlent dans Screenpipe.</p>
       <div className="form-divider" /><h2>Surveillance</h2>
-      <p className="form-help scope-help">Sans filtre : toutes les applications capturées et tous les titres, hors CompanyBuddy.</p>
+      <p className="form-help scope-help">Sans filtre : toutes les applications capturées et tous les titres, hors DecisionDrift.</p>
       <div className="form-grid"><label>Application <span className="optional">facultatif</span><input value={draft.targetApp} onChange={event => field('targetApp', event.target.value)} placeholder="Toutes les applications" /></label><label>Titre contenant <span className="optional">facultatif</span><input value={draft.targetWindow} onChange={event => field('targetWindow', event.target.value)} placeholder="Tous les titres" /></label></div>
       <label className="interval-field">Intervalle (secondes)<input type="number" required min={15} max={3600} step={1} value={interval} onChange={event => setInterval(event.target.value)} inputMode="numeric" /></label>
       <details className="review-details"><summary>Avancé</summary><div className="details-body"><label>Chemin du CLI <span className="optional">facultatif</span><input value={draft.cliPath} onChange={event => field('cliPath', event.target.value)} spellCheck={false} placeholder="Détection automatique" /></label></div></details>
@@ -261,7 +261,7 @@ function Settings({ snapshot, busy, run }: { snapshot: AppSnapshot; busy: boolea
       <aside className="card connection-card"><div className="inline-header"><h2>Connexion</h2><span className="status-dot" aria-hidden="true" /></div>
         <dl className="connection-summary"><div><dt>API</dt><dd>{snapshot.connection.reachable ? 'Joignable' : 'Non joignable ou non vérifiée'}</dd></div><div><dt>Capture</dt><dd>{snapshot.connection.captureStatus || 'Non vérifiée'}</dd></div></dl>
         {snapshot.connection.error && <div className="inline-error" role="alert">{snapshot.connection.error}</div>}
-        <div className="connection-actions"><button className="button" disabled={busy || dirty} onClick={() => void run('connection', () => window.companyBuddy.checkConnection())}><Icon name="refresh" />Vérifier la connexion</button><button className="button" disabled={busy} onClick={() => void run('notification', () => window.companyBuddy.testNotification(), 'Notification de test envoyée à macOS.')}>Tester la notification</button></div>
+        <div className="connection-actions"><button className="button" disabled={busy || dirty} onClick={() => void run('connection', () => window.decisionDrift.checkConnection())}><Icon name="refresh" />Vérifier la connexion</button><button className="button" disabled={busy} onClick={() => void run('notification', () => window.decisionDrift.testNotification(), 'Notification de test envoyée à macOS.')}>Tester la notification</button></div>
         {dirty && <p className="form-help">Enregistrez avant de vérifier la connexion.</p>}
         <details className="review-details"><summary>Diagnostic</summary><div className="details-body"><dl className="connection-summary"><div><dt>CLI</dt><dd className="path-text">{snapshot.connection.cliPath || 'Non détecté'}</dd></div><div><dt>Presets disponibles</dt><dd>{snapshot.connection.presets.length}</dd></div></dl></div></details>
       </aside>
@@ -285,22 +285,22 @@ export function App() {
     mounted.current = true;
     let alive = true;
     let loadSequence = 0;
-    if (!window.companyBuddy) {
-      setError('Ouvrez CompanyBuddy depuis son application de bureau.');
+    if (!window.decisionDrift) {
+      setError('Ouvrez DecisionDrift depuis son application de bureau.');
       return () => { mounted.current = false; };
     }
     const refresh = () => {
       const version = stateEvents.current;
       const request = ++loadSequence;
-      void window.companyBuddy.getState().then(next => {
+      void window.decisionDrift.getState().then(next => {
         if (alive && request === loadSequence && version === stateEvents.current) setSnapshot(next);
       }).catch(cause => { if (alive) setError(cause instanceof Error ? cause.message : String(cause)); });
     };
-    const unsubscribeState = window.companyBuddy.onState(next => {
+    const unsubscribeState = window.decisionDrift.onState(next => {
       stateEvents.current += 1;
       if (alive) setSnapshot(next);
     });
-    const unsubscribeAlert = window.companyBuddy.onOpenAlert(id => {
+    const unsubscribeAlert = window.decisionDrift.onOpenAlert(id => {
       if (!alive) return;
       document.querySelector<HTMLDialogElement>('dialog[open]')?.close();
       setSelectedAlert(id);
@@ -333,7 +333,7 @@ export function App() {
   return <div className="app-shell">
     <a className="skip-link" href="#main-content">Aller au contenu</a>
     <div className="window-chrome" aria-hidden="true" />
-    <aside className="sidebar"><div className="brand"><span className="brand-mark" aria-hidden="true">c<span>b</span></span><strong>CompanyBuddy</strong></div>
+    <aside className="sidebar"><div className="brand"><span className="brand-mark" aria-hidden="true">d<span>d</span></span><strong>DecisionDrift</strong></div>
       <nav className="main-nav" aria-label="Navigation principale">{pages.map(item => <button key={item.id} aria-current={page === item.id ? 'page' : undefined} className={page === item.id ? 'active' : ''} onClick={() => setPage(item.id)}><Icon name={item.id} /><span>{item.label}</span>{item.id === 'activity' && Boolean(snapshot?.alerts.length) && <span className="nav-count">{snapshot?.alerts.length}</span>}</button>)}</nav>
       <div className="sidebar-footer"><span className={`status-dot ${analyzing ? 'analyzing' : ''}`} /><span>{snapshot ? monitorLabels[snapshot.monitor.state] : 'Chargement…'}</span></div>
     </aside>
@@ -341,7 +341,7 @@ export function App() {
       {error && <div className="feedback error-feedback" role="alert"><p>{error}</p><button className="icon-button" aria-label="Fermer l’erreur" onClick={() => setError(null)}><Icon name="close" /></button></div>}
       {message && <div className="feedback" role="status"><p>{message}</p><button className="icon-button" aria-label="Fermer le message" onClick={() => setMessage(null)}><Icon name="close" /></button></div>}
       {busy && <div className="working-feedback" role="status">{busy === 'import-source' ? 'Extraction en cours…' : busy === 'connection' ? 'Vérification de Screenpipe…' : busy === 'stop' ? 'Mise en pause…' : 'En cours…'}</div>}
-      {!snapshot ? <Empty title={error ? 'Chargement impossible' : 'Ouverture…'}>{error && window.companyBuddy && <button className="button" disabled={busy !== null} onClick={() => void run('reload', () => window.companyBuddy.getState())}>Réessayer</button>}</Empty> : <>
+      {!snapshot ? <Empty title={error ? 'Chargement impossible' : 'Ouverture…'}>{error && window.decisionDrift && <button className="button" disabled={busy !== null} onClick={() => void run('reload', () => window.decisionDrift.getState())}>Réessayer</button>}</Empty> : <>
         <section hidden={page !== 'activity'} aria-label="Activité"><Activity snapshot={snapshot} selectedId={selectedAlert} select={setSelectedAlert} busy={busy !== null} stopping={busy === 'stop'} run={run} navigate={setPage} visible={page === 'activity'} focusRequest={alertFocusRequest} /></section>
         <section hidden={page !== 'decisions'} aria-label="Décisions"><Decisions snapshot={snapshot} busy={busy !== null} run={run} notice={setMessage} error={error} /></section>
         <section hidden={page !== 'settings'} aria-label="Réglages"><Settings snapshot={snapshot} busy={busy !== null} run={run} /></section>

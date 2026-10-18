@@ -18,7 +18,7 @@ export class DesktopNotifications {
     const { promise, resolve: shown, reject } = Promise.withResolvers<void>();
     const timeout = setTimeout(() => {
       this.active.delete(request.id);
-      reject(new Error('Le système n’a pas confirmé la notification. Autorisez CompanyBuddy dans Réglages Système → Notifications.'));
+      reject(new Error('Le système n’a pas confirmé la notification. Autorisez DecisionDrift dans Réglages Système → Notifications.'));
     }, 10_000);
     this.active.set(request.id, notification);
     notification.once('show', () => { clearTimeout(timeout); shown(); });
@@ -27,7 +27,7 @@ export class DesktopNotifications {
     notification.once('failed', (_event, error) => {
       clearTimeout(timeout);
       this.active.delete(request.id);
-      reject(new Error(`Notification non délivrée : ${error}. Vérifiez les notifications de CompanyBuddy dans les réglages système.`));
+      reject(new Error(`Notification non délivrée : ${error}. Vérifiez les notifications de DecisionDrift dans les réglages système.`));
     });
     try { notification.show(); }
     catch (error) {

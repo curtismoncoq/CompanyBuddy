@@ -1,4 +1,4 @@
-# CompanyBuddy product plan
+# DecisionDrift product plan
 
 This document records confirmed product decisions from the planning interview. Unresolved choices are not implementation requirements.
 
@@ -15,14 +15,14 @@ This document records confirmed product decisions from the planning interview. U
 - Prefer missing an ambiguous case to repeatedly interrupting legitimate work.
 - A decision owner reviews extracted candidates, corrects their wording, scope, and date constraints, then shares an approved decision file for the employee to import.
 - Observe all applications whose text Screenpipe captures, with no imposed editor or document title. Optional application/window filters remain available. TextEdit and a browser with arbitrary titles are the demonstration surfaces; Google Docs authentication is unnecessary.
-- Deliver a generic desktop notification that opens an explanatory card in CompanyBuddy. Keep sensitive work-document details out of the notification.
+- Deliver a generic desktop notification that opens an explanatory card in DecisionDrift. Keep sensitive work-document details out of the notification.
 - The explanatory card shows the observed passage, applicable decision, available date constraints, and supporting source passage, with access to the source.
 - The app only informs the employee. Do not add an exception approval process, employee feedback workflow, automatic proposal edits, or blocking actions.
 - Use external AI for decision extraction and conflict analysis. The user accepts external processing and does not want privacy engineering to be a hackathon workstream. Existing employee-only visibility and generic notification requirements remain in scope.
 - Prefer MiniMax as the model provider. The user reports that MiniMax appears to work and has Screenpipe Business access through the hackathon. Do not infer specific Business entitlements or end-to-end Google Docs monitoring from that report.
 - Notify only once for the same possible conflict during a monitoring session, even if the conflicting passage remains visible. Do not add resolution tracking or follow-up reminders.
-- Use a dedicated local CompanyBuddy interface with Screenpipe's integrated task execution and MiniMax as the preferred model. Do not build a separate agent harness.
-- The interface handles note import, decision review, approved-file export/import, and monitoring controls. Screenpipe tasks produce analyses; CompanyBuddy consumes the results, deduplicates reminders, and owns desktop notifications and explanation display.
+- Use a dedicated local DecisionDrift interface with Screenpipe's integrated task execution and MiniMax as the preferred model. Do not build a separate agent harness.
+- The interface handles note import, decision review, approved-file export/import, and monitoring controls. Screenpipe tasks produce analyses; DecisionDrift consumes the results, deduplicates reminders, and owns desktop notifications and explanation display.
 - Do not introduce a remote backend or additional user accounts for the hackathon.
 
 ## Hackathon scope limits
@@ -36,7 +36,7 @@ Terminology is defined in [GLOSSARY.md](../GLOSSARY.md).
 ## Accepted demonstration
 
 1. The owner imports [examples/scenario1.json](../examples/scenario1.json), supplied by the user as `screenpipe:scenario1.json`, from the meeting “Point sur la migration de l'API”.
-2. Preserve both decisions and their source passages: keep `/api/v1/users` active until at least November 30, 2026, with no removal or deactivation without renewed team approval; preserve backward compatibility and include a backward-compatibility test for user-route changes. The owner confirms the candidate decisions in CompanyBuddy; the source's `valide_par` field does not bypass that step.
+2. Preserve both decisions and their source passages: keep `/api/v1/users` active until at least November 30, 2026, with no removal or deactivation without renewed team approval; preserve backward compatibility and include a backward-compatibility test for user-route changes. The owner confirms the candidate decisions in DecisionDrift; the source's `valide_par` field does not bypass that step.
 3. Preserve the three assigned actions as source context, not universal decision rules or new task-management workflows. The employee imports the approved decision file.
 4. For the first conflict demonstration, the developer opens [examples/plan-migration.md](../examples/plan-migration.md) in the configured editor; it states “Je vais désactiver /api/v1/users aujourd’hui pour terminer la migration”.
 5. A real Screenpipe capture supports a possible-conflict notification. Clicking it opens the observed passage, the API V1 maintenance decision, and its supporting source passage.
@@ -110,3 +110,10 @@ At that stage, the initial extension-loading blocker was resolved, but real Goog
 - Native logs showed the request being accepted, then silenced with `interruptionSuppression: silence; resolutionReason: display shared; activeModeUUID: (null)`. Delivery events and Notification Centre activation did not prove an on-screen banner.
 - With the user's approval, enabled the global macOS “Allow notifications when mirroring or sharing the display” option for the demo. This affects other permitted apps too and should be disabled afterwards if those notifications must remain private during presentations.
 - After activation, observed a real test notification and then a native conflict alert generated from a fresh TextEdit capture of `plan-migration.md`. Clicking that actual alert opened CompanyBuddy and selected the matching new evidence rather than the previously selected older alert. Monitoring was returned to pause. No notification implementation or preset changes were needed.
+
+## DecisionDrift rename
+
+- Renamed the product, npm metadata, app bundle/executable, menu, window, notification text, sidebar monogram, preload API, IPC channels, TypeScript symbols and Screenpipe task names to DecisionDrift. Historical observations above retain the name and paths used at the time.
+- Kept the existing storage directory `CompanyBuddy`, bundle identifier `com.companybuddy.desktop` and portable format marker `companybuddy.approved.v1` as stable identities. No data migration, internal API aliases or export-format fork is required.
+- Typechecking, all ten existing tests, production packaging and installed-bundle signature verification passed. The renamed installed interface loaded the original decision, source, settings and seven alerts unchanged; monitoring remained paused. Checked the new preload API, removed old API, Activity/Decisions/Settings views, visible native DecisionDrift test notification and native click activation. The private Node launcher ran under Finder's minimal PATH after the executable rename; both native and Electron-title self-capture exclusions rejected the renamed app.
+- No custom icon artwork has been supplied. A 1 024 × 1 024 PNG converted to `.icns` is sufficient for this Electron bundle; Icon Composer is optional, not a runtime or build prerequisite. The existing Electron icon remains until artwork is supplied.

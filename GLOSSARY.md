@@ -1,6 +1,6 @@
-# CompanyBuddy
+# DecisionDrift
 
-CompanyBuddy helps employees recognize when their current work may conflict with an approved company decision.
+DecisionDrift helps employees recognize when their current work may conflict with an approved company decision.
 
 ## Language
 

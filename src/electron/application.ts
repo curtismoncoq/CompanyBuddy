@@ -37,7 +37,7 @@ const disconnected = (): ConnectionInfo => ({
   reachable: false, captureStatus: 'Non vérifié', cliPath: '', presets: [], error: null,
 });
 
-export class CompanyBuddyApplication {
+export class DecisionDriftApplication {
   private book: DecisionBook = { sources: [], decisions: [] };
   private settings: AppSettings = { ...initialSettings };
   private connection = disconnected();

@@ -88,7 +88,7 @@ export interface ApprovalInput extends ExtractedDecision {
   approvedBy: string;
 }
 
-export interface CompanyBuddyApi {
+export interface DecisionDriftApi {
   getState(): Promise<AppSnapshot>;
   importSource(input: { name: string; text: string }): Promise<AppSnapshot>;
   approveDecision(input: ApprovalInput): Promise<AppSnapshot>;
@@ -108,6 +108,6 @@ export interface CompanyBuddyApi {
 
 declare global {
   interface Window {
-    companyBuddy: CompanyBuddyApi;
+    decisionDrift: DecisionDriftApi;
   }
 }
