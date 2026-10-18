@@ -1,9 +1,10 @@
 import { useState } from 'react';
 
 const providers = [
-  { id: 'plaud', name: 'PLAUD', mark: 'P', description: 'Enregistrements et transcriptions' },
-  { id: 'granola', name: 'Granola', mark: 'G', description: 'Notes de réunion' },
-  { id: 'otter', name: 'Otter.ai', mark: 'O', description: 'Transcriptions de réunion' },
+  { id: 'plaud', name: 'PLAUD', logo: new URL('../../assets/integrations/plaud.webp', import.meta.url).href, description: 'Enregistrements et transcriptions' },
+  { id: 'granola', name: 'Granola', logo: new URL('../../assets/integrations/granola.png', import.meta.url).href, description: 'Notes de réunion' },
+  { id: 'otter', name: 'Otter.ai', logo: new URL('../../assets/integrations/otter.png', import.meta.url).href, description: 'Transcriptions de réunion' },
+  { id: 'google-drive', name: 'Google Drive', logo: new URL('../../assets/integrations/google-drive.png', import.meta.url).href, description: 'Documents et comptes rendus' },
 ];
 
 export function IntegrationsDemo() {
@@ -20,7 +21,7 @@ export function IntegrationsDemo() {
       {providers.map(provider => {
         const active = connected.includes(provider.id);
         return <section className="integration-row" key={provider.id} aria-labelledby={`integration-${provider.id}`}>
-          <span className="integration-mark" aria-hidden="true">{provider.mark}</span>
+          <span className="integration-mark" aria-hidden="true"><img src={provider.logo} alt="" width="36" height="36" /></span>
           <div className="integration-provider"><h2 id={`integration-${provider.id}`}>{provider.name}</h2><p className="muted">{provider.description}</p></div>
           <div className="integration-actions">
             <span className={`integration-status ${active ? 'connected' : ''}`} role="status">{active ? 'Connecté · démo' : 'Non connecté'}</span>

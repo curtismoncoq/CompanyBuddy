@@ -26,7 +26,7 @@ npm run dev
 
 Quatre vues : **Activité**, **Décisions**, **Intégrations**, **Réglages**. Le thème sombre utilise la transparence et le flou natifs de macOS ; les réglages d’accessibilité du système peuvent réduire ces effets.
 
-**Intégrations** est un écran de démonstration pour **PLAUD**, **Granola** et **Otter.ai**. Les boutons simulent la connexion et la déconnexion indépendamment pour chaque service. Ces états restent uniquement en mémoire et se réinitialisent au rechargement ou au redémarrage : aucune authentification, requête fournisseur, synchronisation ou import de données n’est effectué. Les imports réels restent accessibles dans **Décisions**.
+**Intégrations** est un écran de démonstration pour **PLAUD**, **Granola**, **Otter.ai** et **Google Drive**, avec les logos fournis stockés dans `assets/integrations/` et inclus dans le paquet. Les boutons simulent la connexion et la déconnexion indépendamment pour chaque service. Ces états restent uniquement en mémoire et se réinitialisent au rechargement ou au redémarrage : aucune authentification, requête fournisseur, synchronisation ou import de données n’est effectué. Les imports réels restent accessibles dans **Décisions**.
 
 L’application sauvegarde ses sources, approbations, réglages et alertes dans le dossier utilisateur Electron `CompanyBuddy` (sur macOS : `~/Library/Application Support/CompanyBuddy`). Une session de surveillance ne reprend jamais automatiquement au lancement. Fermer la fenêtre la masque ; le processus reste actif et le menu de l’application permet de l’afficher, de mettre la surveillance en pause ou de quitter. Quitter supprime les tâches Screenpipe appartenant à cette instance ; les tâches et presets de l’utilisateur restent inchangés.
 

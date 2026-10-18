@@ -172,7 +172,8 @@ blockquote { margin: 0 0 16px; padding: 12px 14px; border-left: 2px solid #74746
 .integration-list { padding: 0; overflow: hidden; }
 .integration-row { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: center; gap: 16px; padding: 24px; }
 .integration-row + .integration-row { border-top: 1px solid var(--line); }
-.integration-mark { width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid #ffffff21; border-radius: 8px; background: #ffffff04; color: #deded9; font: 17px var(--mono); }
+.integration-mark { width: 36px; height: 36px; display: grid; place-items: center; overflow: hidden; border: 1px solid #ffffff21; border-radius: 8px; background: #fff; }
+.integration-mark img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .integration-provider { min-width: 0; }
 .integration-provider h2 { margin: 0 0 3px; font-size: 13px; }
 .integration-provider p { margin: 0; }
